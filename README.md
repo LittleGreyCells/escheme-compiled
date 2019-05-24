@@ -27,8 +27,8 @@ interpreter core, but eliminating the interpreter's repeated analysis.
 
 ## Two Worlds
 
-In escheme _compiled_ evaluation can move freely between the interpreter
-and byte code evaluator (BCE). This is another SICP (Ch5) goal realized and
+In escheme _compiled_ evaluation can move freely between the interpreter's explict control 
+evaluator and the compiler's targeted byte code evaluator. This is a SICP goal realized and
 offers the developer the option of choosing intepretation during development
 and compilation for system delivery.
 
