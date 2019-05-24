@@ -19,7 +19,7 @@ emacs or eLisp in any way.
 SICP (Ch5) also describes an abstract machine and a compiler to transform 
 scheme expressions into executable code. escheme _compiled_ also runs
 with that idea, creating its own abstract machine which closely parallels the
-interpreter core, optimizing away the repeated interpreter analysis.
+interpreter core, but eliminating the interpreter's repeated analysis.
 
 (*) Structure and Interpretation of Computer Programs (aka SICP)
     by Harold Abelson and Gerald Sussman
