@@ -12,6 +12,7 @@
 		      (%%eval (compile exp))
 		      (%%eval (compile exp (car env)) (car env))))))
 
+;; compile load
 (define (load file . noisily)
   (if (not (string? file))
       (error "filename is not a string")
@@ -19,7 +20,10 @@
         (if port
           (let ((sexpr (read port)))
             (while (not (eof-object? sexpr))
-              (if noisily (begin (display ">> ") (print sexpr)))
+                   (if noisily
+                       (begin
+                         (display ">> ")
+                         (print sexpr)))
 	      (eval sexpr)
 	      (set! sexpr (read port)))
             (close-port port)))
@@ -27,7 +31,15 @@
 
 (load (system-path "macros/macros-compiler.scm"))
 (load (system-path "macros/qquote.scm"))
-
 (load (system-path "boot/standard-functions.scm"))
+
+;; compile the rep loop
+(set! *rep-loop*
+  (lambda ()
+    (while #t
+      (let ((sexpr (read *terminal*)))
+        (add-history sexpr)
+        (print (eval sexpr))))))
+
 
 ;; [EOF]

@@ -20,6 +20,7 @@ const char* SYSTEM_REPLOOP = "*system-rep-loop*";
 const char* SYSTEM_LOADER  = "*system-loader*";
 const char* SYSTEM_PATH    = "*system-path*";
 const char* TOPLEVEL       = "*toplevel*";
+const char* REP_LOOP       = "*rep-loop*";
 
 static void define_system()
 {
@@ -27,6 +28,12 @@ static void define_system()
 (begin
    (define *version* "<interpreter>")
    (set-prompt "noise> ")
+   (define *rep-loop*
+     (lambda ()
+       (while #t
+         (let ((sexpr (read *terminal*)))
+           (add-history sexpr)
+           (print (eval sexpr))))))
    (let ((x 0))
      (call/cc (lambda (cc) (set! *toplevel* cc)))
      (if (= x 0)
@@ -40,10 +47,7 @@ static void define_system()
      (newline)
      (flush-output)
      (call/cc (lambda (cc) (set! *toplevel* cc)))
-     (while #t
-       (let ((sexpr (read *terminal*)))
-         (add-history sexpr)
-         (print (eval sexpr)))))
+     (*rep-loop*))
 
 (define (load file . noisily)
   (if (not (string? file))
