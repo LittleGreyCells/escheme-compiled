@@ -12,9 +12,6 @@
 #include "core/regstack.hxx"
 #include "core/symtab.hxx"
 
-#define DO_COMBOS
-//#undef DO_COMBOS
-
 //
 // instruction set
 //
@@ -139,9 +136,8 @@ static std::vector<OpcodeEntry> optab =
    { OP_FREF_APPLYC,       3, "fref-applyc"       , nullptr },
    { OP_GET_ACCESS_APPLYC, 2, "get-access-applyc" , nullptr },
 
-   // exits
+   // exit(s)
    { OP_RTE,               1, "rte" , nullptr },
-   //{ OP_RTC,               1, "rtc" , nullptr },
 };
 
 struct RegisterEntry
