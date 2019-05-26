@@ -14,6 +14,9 @@
 #include "regstack.hxx"
 
 #include "eval/eval.hxx"
+#ifdef BYTE_CODE_EVALUATOR
+#include "eval/imager.hxx"
+#endif
 
 // symbol names for hanging sexprs
 const char* SYSTEM_REPLOOP = "*system-rep-loop*";
@@ -84,6 +87,17 @@ void rep_loop()
 
    try
    {
+#ifdef BYTE_CODE_EVALUATOR
+      std::string compiler_path = "";
+      const char* escheme_home = ::getenv( "ESCHEME" );
+      if ( escheme_home )
+      {
+         compiler_path += escheme_home;
+         compiler_path += "/";
+      }
+      compiler_path += "compiler/compiler-image.scm";
+      IMAGER::image_load( compiler_path.c_str() );
+#endif
       define_system();
       
       EVAL::eceval( getvalue(SYMTAB::enter(SYSTEM_LOADER)) );

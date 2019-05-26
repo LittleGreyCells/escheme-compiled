@@ -9,7 +9,6 @@
 #include "eval/eval.hxx"
 #ifdef BYTE_CODE_EVALUATOR
 #include "eval/assem.hxx"
-#include "eval/imager.hxx"
 #endif
 
 int unix_argc;
@@ -33,7 +32,6 @@ int main( int argc, char** argv )
       EVAL::initialize();
 #ifdef BYTE_CODE_EVALUATOR
       ASSEM::initialize();
-      IMAGER::image_load( "compiler/compiler-image.scm" );
 #endif
    }
    catch (...)
