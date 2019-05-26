@@ -91,9 +91,9 @@ enum OpCodes
    OP_FREF_APPLYC,
    OP_GET_ACCESS_APPLYC,
 
-   // exits to ECE
+   // exits to caller
 
-   OP_RTE,          // return to eceval, cont <- top(evs)
+   OP_RTE,          // return to caller, cont <- top(evs)
 };
 
 enum REGISTERS

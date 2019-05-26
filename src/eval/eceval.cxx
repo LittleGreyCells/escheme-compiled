@@ -53,9 +53,9 @@ SEXPR EVAL::eceval( SEXPR sexpr )
    next = EVAL_DISPATCH;
    pc   = 0;
 
-   regstack.flush();
-   argstack.flush();
-   intstack.flush();
+   //regstack.flush();
+   //argstack.flush();
+   //intstack.flush();
    
    //
    // When analyzing forms *always* use the type-safe accessors:
@@ -107,8 +107,8 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 		  // compiled code evaluation
 		  //   compiled code expects to exit with goto-cont
 		  save_evs(cont);
-		  pc = 0;
 		  unev = exp;
+		  pc = 0;
 		  next = EVAL_CODE;
 		  SAVE_RTE();
 		  break;

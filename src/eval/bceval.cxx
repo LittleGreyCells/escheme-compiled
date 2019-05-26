@@ -17,8 +17,6 @@
 
 bool bce_trace_switch = true;
 
-#define TRACEVM
-#undef TRACEVM
 #ifdef TRACEVM
 #define TRACE( code ) if (bce_trace_switch) { code; };
 #else

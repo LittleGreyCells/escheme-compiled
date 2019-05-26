@@ -1,10 +1,6 @@
 (define *version* "v2.0 (compiler)")
 (set-prompt "bce> ")
 
-;; load the compiler
-(load       (system-path "imager/imager.scm"))
-(image-load (system-path "compiler/compiler-image.scm"))
-
 ;; redefine eval
 (define %%eval eval)
 (eval (compile '(define (eval exp . env)

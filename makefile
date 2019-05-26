@@ -16,6 +16,7 @@ SRCS	= \
 	$(EVAL)/eval.cxx \
 	$(EVAL)/eceval.cxx \
 	$(EVAL)/bceval.cxx \
+	$(EVAL)/imager.cxx \
 	$(EVAL)/assem.cxx \
 	$(CORE)/sexpr.cxx \
 	$(CORE)/escheme.cxx \
