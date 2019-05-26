@@ -1,4 +1,4 @@
-escheme _compiled_
+escheme _dyadic_
 ================
 
 A scheme interpreter with compilation system
@@ -8,16 +8,16 @@ A scheme interpreter with compilation system
 escheme is an aspiring R3RS implementation of the algorithmic language scheme, 
 supporting approximately 90% of the standard. It has been principally an experimental
 testbed for exploring models of evaluation, interpreter design and construction.
-Along the way escheme has become a respectible programming language, not a toy.
+Along the way escheme has become a capable programming language, not a toy.
 Many additional functions are added to support environments, input/output, the host OS 
 (linux/unix) and access escheme internals. Bignums are not supported.
 
 Abelson and Sussman's SICP* in Ch5 describes an explicit control evalutor for 
-scheme. That material provided the impetus for escheme. It is not related to
+scheme. That material provided the impetus for escheme. escheme is not related to
 emacs or eLisp in any way.
 
 SICP (Ch5) also describes an abstract machine and a compiler to transform 
-scheme expressions into executable code. escheme _compiled_ also runs
+scheme expressions into executable code. escheme _dyad_ also runs
 with that idea, creating its own abstract machine which closely parallels the
 interpreter core, but eliminating the interpreter's repeated analysis.
 
@@ -27,12 +27,12 @@ interpreter core, but eliminating the interpreter's repeated analysis.
 
 ## Two Worlds
 
-In escheme _compiled_ evaluation can move freely between the interpreter's explict control 
+In escheme _dyadic_ evaluation can move freely between the interpreter's explict control 
 evaluator and the compiler's targeted byte code evaluator. This is a SICP goal realized and
 offers the developer the option of choosing intepretation during development
 and compilation for system delivery.
 
-escheme boots into the compiler, but is also configured to boot into the interpreter.
+escheme boots into the compiler, but is also configured to permit booting into the interpreter.
 
 ## Implementation 
 
