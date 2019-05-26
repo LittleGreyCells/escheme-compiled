@@ -81,6 +81,17 @@ static void define_system()
    setvalue( SYMTAB::enter(SYSTEM_PATH), READER::read(port) );
 }
 
+#ifdef BYTE_CODE_EVALUATOR
+static std::string system_path( const char* file )
+{
+   const char* home = ::getenv( "ESCHEME" );
+   if ( home )
+      return std::string(home) + "/" + file;
+   else
+      return file;
+}
+#endif
+
 void rep_loop()
 {
    // build the "system"
@@ -88,15 +99,7 @@ void rep_loop()
    try
    {
 #ifdef BYTE_CODE_EVALUATOR
-      std::string compiler_path = "";
-      const char* escheme_home = ::getenv( "ESCHEME" );
-      if ( escheme_home )
-      {
-         compiler_path += escheme_home;
-         compiler_path += "/";
-      }
-      compiler_path += "compiler/compiler-image.scm";
-      IMAGER::image_load( compiler_path.c_str() );
+      IMAGER::image_load( system_path("compiler/compiler-image.scm").c_str() );
 #endif
       define_system();
       
