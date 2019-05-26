@@ -65,7 +65,7 @@ return back to escheme.
 
 ## Getting Started
 
-Consult the file _BuildingAndRunning_ to build the interpreter. Run as an 
+Consult the file _BuildingAndRunning_ to build the interpreter/compiler. Run as an 
 interpeter or reconfigure the system to run a read/compile/eval/print loop.
 
 For a complete list of escheme functions (and a help system) consult syntax.scm/syntax-help.scm in the 
