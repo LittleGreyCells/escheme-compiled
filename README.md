@@ -17,7 +17,7 @@ scheme. That material provided the impetus for escheme. escheme is not related t
 emacs or eLisp in any way.
 
 SICP (Ch5) also describes an abstract machine and a compiler to transform 
-scheme expressions into executable code. escheme _dyad_ also runs
+scheme expressions into executable code. escheme _dyadic_ also runs
 with that idea, creating its own abstract machine which closely parallels the
 interpreter core, but eliminating the interpreter's repeated analysis.
 

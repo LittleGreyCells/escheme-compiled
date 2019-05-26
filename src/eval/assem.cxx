@@ -51,7 +51,7 @@
 //   (save-cont (label <label>))
 //   <combos>
 //   (rte)
-//   (rtc)
+//   (done)
 //
 
 namespace FUNC
@@ -138,6 +138,7 @@ static std::vector<OpcodeEntry> optab =
 
    // exit(s)
    { OP_RTE,               1, "rte" , nullptr },
+   { OP_RTC,               1, "rtc" , nullptr },
 };
 
 struct RegisterEntry
@@ -223,8 +224,6 @@ static int find_reg( const SEXPR symbol )
    // we never get here; return something to quiet the warning
    return 0;
 }
-
-static char buffer[100];
 
 //
 // ENCODE
@@ -654,7 +653,7 @@ static SEXPR encode( SEXPR program )
 	    }
 
 	    default:
-	       ERROR::severe( "assem: instruction not recognized", MEMORY::fixnum(op) );
+	       ERROR::severe( "assem: instruction not recognized/permitted", MEMORY::fixnum(op) );
 	       break;
 	 }
 
@@ -769,6 +768,7 @@ static void decode( SEXPR code, int level=0 )
       const unsigned op = bvecref(bv, index);
       if ( op >= optab.size() )
       {
+         char buffer[80];
 	 SPRINTF( buffer, "decode -- bad opcode (%d) at (%d)", op, index );
 	 ERROR::severe( buffer, bv );
       }
@@ -814,6 +814,7 @@ static void decode( SEXPR code, int level=0 )
 	 case OP_FOR_RESULT:   // op=39
 	 case OP_FORCE_VALUE:  // op=43
 	 case OP_RTE:          //
+	 case OP_RTC:          //
 	    printf("\n");
 	    break;
 	    

@@ -37,6 +37,11 @@
    save_reg( rte_code );\
    save_int( 0 );
 
+#define SAVE_RTC()\
+   save_reg( env );\
+   save_reg( rtc_code );\
+   save_int( 0 );
+
 //
 // Evaluator States
 //
@@ -110,12 +115,14 @@ namespace EVAL
    extern SEXPR map_code;
    extern SEXPR for_code;
    extern SEXPR rte_code;
+   extern SEXPR rtc_code;
    extern SEXPR fep_code;
 
    void initialize();
   
    SEXPR eceval( SEXPR sexpr );
    void bceval();
+   void bceval( SEXPR sexpr );
 
    inline SEXPR the_environment() { return env; }
 

@@ -781,6 +781,13 @@ void EVAL::bceval()
 	    return;
 	 }
 	 
+	 case OP_RTC:
+	 {
+	    TRACE( printf( "rtc\n" ) );
+	    // op
+	    return;
+	 }
+	 
 	 default:
 	 {
 	    char message[80];
@@ -790,4 +797,12 @@ void EVAL::bceval()
 	 }
       }
    }
+}
+
+void EVAL::bceval( SEXPR exp )
+{
+   unev = exp;
+   pc = 0;
+   SAVE_RTC();
+   bceval();
 }

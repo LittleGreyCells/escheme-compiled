@@ -27,6 +27,7 @@ int EVAL::pc;
 SEXPR EVAL::map_code;
 SEXPR EVAL::for_code;
 SEXPR EVAL::rte_code;
+SEXPR EVAL::rtc_code;
 SEXPR EVAL::fep_code;
 
 //
@@ -299,6 +300,7 @@ static void eval_marker()
    MEMORY::mark( EVAL::map_code );
    MEMORY::mark( EVAL::for_code );
    MEMORY::mark( EVAL::rte_code );
+   MEMORY::mark( EVAL::rtc_code );
    MEMORY::mark( EVAL::fep_code );
 }
 
@@ -341,6 +343,7 @@ void EVAL::initialize()
    SEXPR map_bcodes = MEMORY::byte_vector( 5 );
    SEXPR for_bcodes = MEMORY::byte_vector( 5 );
    SEXPR rte_bcodes = MEMORY::byte_vector( 1 );
+   SEXPR rtc_bcodes = MEMORY::byte_vector( 1 );
    SEXPR fep_bcodes = MEMORY::byte_vector( 2 );;
 
    bvecset( map_bcodes, 0, OP_MAP_INIT );
@@ -356,18 +359,22 @@ void EVAL::initialize()
    bvecset( for_bcodes, 4, OP_GOTO_CONT );
 
    bvecset( rte_bcodes, 0, OP_RTE );
+   bvecset( rtc_bcodes, 0, OP_RTC );
 
    bvecset( fep_bcodes, 0, OP_FORCE_VALUE );
    bvecset( fep_bcodes, 1, OP_GOTO_CONT );
 
+
    map_code = MEMORY::code( map_bcodes, MEMORY::vector_null );
    for_code = MEMORY::code( for_bcodes, MEMORY::vector_null );
    rte_code = MEMORY::code( rte_bcodes, MEMORY::vector_null );
+   rtc_code = MEMORY::code( rtc_bcodes, MEMORY::vector_null );
    fep_code = MEMORY::code( fep_bcodes, MEMORY::vector_null );
 
    SYMTAB::enter( "%%map-code", map_code );
    SYMTAB::enter( "%%for-code", for_code );
    SYMTAB::enter( "%%rte-code", rte_code );
+   SYMTAB::enter( "%%rtc-code", rtc_code );
    SYMTAB::enter( "%%fep-code", fep_code );
 
    MEMORY::register_marker( eval_marker );

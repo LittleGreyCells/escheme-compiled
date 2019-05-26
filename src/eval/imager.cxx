@@ -31,7 +31,7 @@ void IMAGER::image_dump( const char* fname_in, const char* fname_out )
 
 static void eval( SEXPR exp )
 {
-   EVAL::eceval( exp );
+   EVAL::bceval( exp );
 }
 
 static SEXPR vector_to_bvec( SEXPR v )

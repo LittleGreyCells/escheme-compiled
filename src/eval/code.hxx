@@ -93,7 +93,8 @@ enum OpCodes
 
    // exits to caller
 
-   OP_RTE,          // return to caller, cont <- top(evs)
+   OP_RTE,          // return to eceval, cont <- top(evs)
+   OP_RTC           // return to c/c++ caller
 };
 
 enum REGISTERS
