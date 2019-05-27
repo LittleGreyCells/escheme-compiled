@@ -29,13 +29,7 @@ byte code evaluator. This flexibility offers the developer the option of choosin
 intepretation during development and compilation for system delivery.
 
 escheme _dyadic_ by default boots into the read-compile-eval-print loop, but can also 
-be configured to boot into the interpreter's read-eval-print loop. Since macros are enabled,
-expression reading and evaluation going on under the covers looks like this:
-
-| REP Processing        | Description                                        |
-| ---------------- | ---------------------------------------------------|
-| (print (eval (expand (read))) | interpreter booted |
-| (print (eval (compile (expand (read)))) | compiler booted |
+be configured to boot into the interpreter's read-eval-print loop. 
 
 ## Implementation 
 
