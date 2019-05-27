@@ -5,16 +5,7 @@ The escheme interpreter with compilation system
 
 ## Introduction
 
-escheme is an aspiring implementation of the algorithmic language scheme, 
-supporting approximately 90% of the R3RS standard. It has been principally an experimental
-testbed for exploring models of evaluation, interpreter design and construction.
-Along the way escheme has become a capable programming language, not a toy.
-Many additional functions are added to support environments, input/output, the host OS 
-(linux/unix) and access escheme internals. Bignums are not supported.
-
-Abelson and Sussman's _Structure and Interpretation of Computer Programs (aka SICP)_ chapter 5 describes 
-an explicit control evalutor for scheme. That material has provided the impetus for escheme. 
-escheme is not related to emacs or eLisp in any way.
+See escheme.
 
 _SICP_ also describes an abstract machine and a compiler to transform 
 scheme expressions into executable code. This second implementation of escheme runs
