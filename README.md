@@ -1,38 +1,41 @@
 escheme _dyadic_
 ================
 
-A scheme interpreter with compilation system
+The escheme interpreter with compilation system
 
 ## Introduction
 
-escheme is an aspiring R3RS implementation of the algorithmic language scheme, 
-supporting approximately 90% of the standard. It has been principally an experimental
+escheme is an aspiring implementation of the algorithmic language scheme, 
+supporting approximately 90% of the R3RS standard. It has been principally an experimental
 testbed for exploring models of evaluation, interpreter design and construction.
 Along the way escheme has become a capable programming language, not a toy.
 Many additional functions are added to support environments, input/output, the host OS 
 (linux/unix) and access escheme internals. Bignums are not supported.
 
-Abelson and Sussman's SICP* in Ch5 describes an explicit control evalutor for 
-scheme. That material provided the impetus for escheme. escheme is not related to
-emacs or eLisp in any way.
+Abelson and Sussman's _Structure and Interpretation of Computer Programs (aka SICP)_ chapter 5 describes 
+an explicit control evalutor for scheme. That material has provided the impetus for escheme. 
+escheme is not related to emacs or eLisp in any way.
 
-SICP (Ch5) also describes an abstract machine and a compiler to transform 
-scheme expressions into executable code. escheme _dyadic_ also runs
-with that idea, creating its own abstract machine which closely parallels the
+_SICP_ also describes an abstract machine and a compiler to transform 
+scheme expressions into executable code. This second implementation of escheme runs
+with that idea, creating an abstract machine which closely parallels the
 interpreter core, but eliminating the interpreter's repeated analysis.
-
-(*) Structure and Interpretation of Computer Programs (aka SICP)
-    by Harold Abelson and Gerald Sussman
-    MIT Press (1984)
 
 ## Two Worlds
 
-In escheme _dyadic_ evaluation can move freely between the interpreter's explict control 
+escheme _dyadic_ evaluation can move freely between the interpreter's explict control 
 evaluator and the compiler's targeted byte code evaluator. This is a SICP goal realized and
 offers the developer the option of choosing intepretation during development
 and compilation for system delivery.
 
-escheme boots into the compiler, but is also configured to permit booting into the interpreter.
+escheme _dyad_ by default boots into the read-compile-eval-print loop, but can also 
+be configured to boot into the interpreter's read-eval-print loop. Since macros are enabled,
+expression reading and evaluation going on under the covers looks like this:
+
+| REP Processing        | Description                                        |
+| ---------------- | ---------------------------------------------------|
+| (print (eval (expand (read))) | interpreter booted |
+| (print (eval (compile (expand (read)))) | compiler booted |
 
 ## Implementation 
 
