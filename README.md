@@ -1,4 +1,4 @@
-escheme _dyadic_
+escheme _compiled_
 ================
 
 The escheme interpreter with compilation system
@@ -21,14 +21,14 @@ scheme expressions into executable code. This second implementation of escheme r
 with that idea, creating an abstract machine which closely parallels the
 interpreter core, but eliminating the interpreter's repeated analysis.
 
-## Twins!
+## Two Worlds
 
-A _dyad_ is defined as "two individuals or units regarded as a pair." escheme _dyadic_ evaluation 
+A _dyad_ is defined as "two individuals or units regarded as a pair." escheme _compiled_ evaluation 
 can move freely between the interpreter's explict control evaluator and the compiler's targeted 
 byte code evaluator. This flexibility offers the developer the option of choosing 
 intepretation during development and compilation for system delivery.
 
-escheme _dyadic_ by default boots into the read-compile-eval-print loop, but can also 
+escheme _compiled_ by default boots into the read-compile-eval-print loop, but can also 
 be configured to boot into the interpreter's read-eval-print loop. 
 
 ## Implementation 
