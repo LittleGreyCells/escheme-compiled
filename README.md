@@ -28,7 +28,7 @@ can move freely between the interpreter's explict control evaluator and the comp
 byte code evaluator. This flexibility offers the developer the option of choosing 
 intepretation during development and compilation for system delivery.
 
-escheme _dyad_ by default boots into the read-compile-eval-print loop, but can also 
+escheme _dyadic_ by default boots into the read-compile-eval-print loop, but can also 
 be configured to boot into the interpreter's read-eval-print loop. Since macros are enabled,
 expression reading and evaluation going on under the covers looks like this:
 
