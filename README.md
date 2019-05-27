@@ -14,10 +14,10 @@ interpreter core, but eliminating the interpreter's repeated analysis.
 
 ## Two Worlds
 
-A _dyad_ is defined as "two individuals or units regarded as a pair." escheme _compiled_ evaluation 
-can move freely between the interpreter's explict control evaluator and the compiler's targeted 
-byte code evaluator. This flexibility offers the developer the option of choosing 
-intepretation during development and compilation for system delivery.
+Evaluation can move freely between the interpreter's explict 
+control evaluator and the compiler's targeted byte code evaluator. This flexibility 
+offers the developer the option of choosing intepretation during development and 
+compilation for system delivery.
 
 escheme _compiled_ by default boots into the read-compile-eval-print loop, but can also 
 be configured to boot into the interpreter's read-eval-print loop. 
