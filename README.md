@@ -21,12 +21,12 @@ scheme expressions into executable code. This second implementation of escheme r
 with that idea, creating an abstract machine which closely parallels the
 interpreter core, but eliminating the interpreter's repeated analysis.
 
-## Two Worlds
+## Twins!
 
-escheme _dyadic_ evaluation can move freely between the interpreter's explict control 
-evaluator and the compiler's targeted byte code evaluator. This is a SICP goal realized and
-offers the developer the option of choosing intepretation during development
-and compilation for system delivery.
+A _dyad_ is defined as "two individuals or units regarded as a pair." escheme _dyadic_ evaluation 
+can move freely between the interpreter's explict control evaluator and the compiler's targeted 
+byte code evaluator. This flexibility offers the developer the option of choosing 
+intepretation during development and compilation for system delivery.
 
 escheme _dyad_ by default boots into the read-compile-eval-print loop, but can also 
 be configured to boot into the interpreter's read-eval-print loop. Since macros are enabled,
