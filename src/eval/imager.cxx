@@ -13,19 +13,6 @@
 static auto verbose = false;
 
 //
-// DUMP
-//
-
-static void dump_file( SEXPR iport, SEXPR oport, int nosily=0 )
-{
-}
-
-void IMAGER::image_dump( const char* fname_in, const char* fname_out )
-{
-   // TBD
-}
-
-//
 // LOAD
 //
 

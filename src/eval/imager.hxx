@@ -3,10 +3,7 @@
 
 namespace IMAGER
 {
-
-void image_dump( const char* fname_in, const char* fname_out );
-void image_load( const char* fname_in );
-
+   void image_load( const char* fname_in );
 }
 
 #endif
