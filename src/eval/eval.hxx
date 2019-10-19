@@ -11,37 +11,6 @@
 #include "core/regstack.hxx"
 #include "core/intstack.hxx"
 
-#define save_evs(x)  intstack.push( int(x) )
-#define save_int(x)  intstack.push(x)
-#define save_reg(x)  regstack.push(x)
-
-#define restore_evs(x) (x) = EVSTATE( intstack.pop() )
-#define restore_int(x) (x) = intstack.pop()
-#define restore_reg(x) (x) = regstack.pop()
-
-//
-// Save and Restore the Byte Code Evaluator Registers
-//
-#define SAVE_BCE_REGISTERS()\
-   save_reg( env );\
-   save_reg( unev );\
-   save_int( pc );
-
-#define RESTORE_BCE_REGISTERS()\
-   restore_int( pc );\
-   restore_reg( unev );\
-   restore_reg( env );
-
-#define SAVE_RTE()\
-   save_reg( env );\
-   save_reg( rte_code );\
-   save_int( 0 );
-
-#define SAVE_RTC()\
-   save_reg( env );\
-   save_reg( rtc_code );\
-   save_int( 0 );
-
 //
 // Evaluator States
 //
@@ -142,6 +111,45 @@ namespace EVAL
    void restore_continuation( SEXPR continuation );
 
    void register_check( int id, PREDICATE pre, SEXPR reg );
+}
+
+inline void save_evs( EVSTATE x )  { intstack.push(int(x)); }
+inline void save_int( int x )  { intstack.push(x); }
+inline void save_reg( SEXPR x ) { regstack.push(x); }
+inline void restore_evs( EVSTATE& x ) { x = EVSTATE( intstack.pop() ); }
+inline void restore_int( int& x ) { x = intstack.pop(); }
+inline void restore_reg( SEXPR& x ) { x = regstack.pop(); }
+
+//
+// Save and Restore the Byte Code Evaluator Registers
+//
+
+inline void SAVE_BCE_REGISTERS()
+{
+   save_reg( EVAL::env );
+   save_reg( EVAL::unev );
+   save_int( EVAL::pc );
+}
+
+inline void RESTORE_BCE_REGISTERS()
+{
+   restore_int( EVAL::pc );
+   restore_reg( EVAL::unev );
+   restore_reg( EVAL::env );
+}
+
+inline void SAVE_RTE()
+{
+   save_reg( EVAL::env );
+   save_reg( EVAL::rte_code );
+   save_int( 0 );
+}
+
+inline void SAVE_RTC()
+{
+   save_reg( EVAL::env );
+   save_reg( EVAL::rtc_code );
+   save_int( 0 );
 }
 
 #endif

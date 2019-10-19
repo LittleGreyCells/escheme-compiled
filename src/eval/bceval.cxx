@@ -66,13 +66,11 @@ public:
    BYTE operator[]( int index ) const { return getbvecdata(bcodes)[index]; }
 };
 
-#define REGISTER(index) (*regs[bcode[(index)]])
-#define OBJECT(index)   vectorref( sexprs, bcode[(index)] )
-#define REGNAME(index)  regnames[bcode[(index)]]
-#define GET16(index)    (bcode[(index)] + (bcode[(index)+1] << 8))
-
-#define FALSEP(x) ((x) == null) || ((x) == symbol_false)
-#define TRUEP(x)  (!(FALSEP(x)))
+inline auto& REGISTER( const BCODE& bcode, int index ) { return *regs[bcode[index]]; }
+inline auto OBJECT( const SEXPR& sexprs, const BCODE& bcode, int index )  { return vectorref( sexprs, bcode[index] ); }
+inline auto GET16( const BCODE& bcode, int index ) { return bcode[index] + (bcode[index+1] << 8); }
+inline bool FALSEP( SEXPR x ) { return (x == null) || (x == symbol_false); }
+inline bool TRUEP( SEXPR x ) { return !FALSEP(x); }
 
 void EVAL::bceval()
 {
@@ -183,7 +181,7 @@ void EVAL::bceval()
 	    break;
 
 #define OP_ASSIGN_REG_CODE()\
-	    val = REGISTER( pc );\
+	    val = REGISTER( bcode, pc );         \
 	    pc += 1;
 
 	 case OP_ASSIGN_REG:
@@ -204,7 +202,7 @@ void EVAL::bceval()
 	    goto start_apply_cont;
 
 #define OP_ASSIGN_OBJ_CODE()\
-	    val = OBJECT( pc );\
+	    val = OBJECT( sexprs, bcode, pc );   \
 	    pc += 1;\
 
 	 case OP_ASSIGN_OBJ:
@@ -226,7 +224,7 @@ void EVAL::bceval()
 
 #define OP_GREF_CODE()\
 	    {\
-	       SEXPR sym = OBJECT( pc );\
+	       SEXPR sym = OBJECT( sexprs, bcode, pc );  \
 	       val = value( sym );\
 	       if (val == SYMTAB::symbol_unbound)\
 		  ERROR::severe("symbol is unbound", sym);\
@@ -252,7 +250,7 @@ void EVAL::bceval()
 
 	 case OP_GSET:
 	 {
-	    set( OBJECT( pc ), val );
+	    set( OBJECT( sexprs, bcode, pc ), val );
 	    pc += 1;
 	    break;
 	 }
@@ -307,8 +305,8 @@ void EVAL::bceval()
 	 }
 
 #define OP_GET_ACCESS_CODE()\
-	    val = lookup( OBJECT( pc ), val );\
-	    pc += 1;
+         val = lookup( OBJECT( sexprs, bcode, pc ), val );      \
+         pc += 1;
 
 	 case OP_GET_ACCESS:
 	    OP_GET_ACCESS_CODE();
@@ -332,7 +330,7 @@ void EVAL::bceval()
 	    TRACE( printf( "set-access obj[%d]\n", bcode[pc] ) );
 	    // op, [val], sym(SVI), [val], [exp/env2]
 	    //            +0
-	    set_variable_value( OBJECT( pc ), val, exp );
+	    set_variable_value( OBJECT( sexprs, bcode, pc ), val, exp );
 	    pc += 1;
 	    break;
 	 }
@@ -342,8 +340,8 @@ void EVAL::bceval()
 	    TRACE( printf( "make-closure obj[%d]\n", bcode[pc] ) );
 	    // op, [val], bcode(CVI), params(CVI), num, rest, [env]
 	    //            +0          +1           +2   +3
-	    val = MEMORY::closure( OBJECT( pc ), env );
-	    setclosurevars( val, OBJECT( pc+1 ) );
+	    val = MEMORY::closure( OBJECT( sexprs, bcode, pc ), env );
+	    setclosurevars( val, OBJECT( sexprs, bcode, pc+1 ) );
 	    setclosurenumv( val, bcode[pc+2] );
 	    setclosurerargs( val, bcode[pc+3] ? true : false );
 	    pc += 4;
@@ -355,7 +353,7 @@ void EVAL::bceval()
 	    TRACE( printf( "make-delay obj[%d]\n", bcode[pc] ) );
 	    // op, [val], bcode(CVI)
 	    //            +0 
-	    val = MEMORY::promise( OBJECT( pc ) );
+	    val = MEMORY::promise( OBJECT( sexprs, bcode, pc ) );
 	    pc += 1;
 	    break;
 	 }
@@ -708,11 +706,11 @@ void EVAL::bceval()
 
 	 case OP_BRANCH:
 	 {
-	    TRACE( printf( "branch %d\n", GET16(pc) ) );
+	    TRACE( printf( "branch %d\n", GET16(bcode, pc) ) );
 	    // op, bcode-index
 	    //         +0
 	    if ( testresult )
-	       pc = GET16(pc);
+	       pc = GET16(bcode, pc);
 	    else
 	       pc += 2;
 	    break;
@@ -720,10 +718,10 @@ void EVAL::bceval()
 
 	 case OP_GOTO:
 	 {
-	    TRACE( printf( "goto %d\n", GET16(pc) ) );
+	    TRACE( printf( "goto %d\n", GET16(bcode, pc) ) );
 	    // op, bcode-index
 	    //         +0
-	    pc = GET16(pc);
+	    pc = GET16(bcode, pc);
 	    break;
 	 }
 
@@ -752,7 +750,7 @@ void EVAL::bceval()
 	    TRACE( printf( "extend-env\n" ) );
 	    // op, reg, nvars, vars(SVI), [env] (4b)
 	    //     +0   +1     +2
-	    REGISTER( pc ) = MEMORY::environment( bcode[pc+1], OBJECT( pc+2 ), env );
+	    REGISTER( bcode, pc ) = MEMORY::environment( bcode[pc+1], OBJECT( sexprs, bcode,  pc+2 ), env );
 	    pc += 3;
 	    break;
 	 }
