@@ -225,9 +225,6 @@ struct Node
 
 extern SEXPR null;
 
-// debugging support
-void show( const SEXPR n );
-
 // accessors
 FIXNUM fixnum( const SEXPR n );
 FLONUM flonum( const SEXPR n );
