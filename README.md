@@ -24,7 +24,7 @@ be configured to boot into the interpreter's read-eval-print loop.
 
 ## Implementation 
 
-escheme is implemented in C++11, using a modest set of language features
+escheme is implemented in C++14, using a modest set of language features
 exploiting class initialization/finalization semantics for deferred execution 
 and cleanup. Templates are used for control stack and argument stack 
 implementation. Exceptions are used for non-local returns, 
