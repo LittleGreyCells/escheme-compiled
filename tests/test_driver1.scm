@@ -23,10 +23,10 @@
 
 (define (test2 n)
   (display-header "test2" n)
-  (load "syntax-help.scm")
+  (load "help/syntax-help.scm")
   (let ((double-reverse
          (lambda ()
-           (let ((p (syntax-read "syntax.scm")))
+           (let ((p (syntax-read "help/syntax.scm")))
              (if (not (equal? p (reverse (reverse p))))
                  (error "p != rev(rev(p))")
                  )))))
@@ -53,7 +53,7 @@
 
 (define (test3 n)
   (display-header "test3" n)
-  (load "syntax-help.scm")
+  (load "help/syntax-help.scm")
   (let ((f (lambda ()
              (let ((help-fn
                     (lambda (fn)

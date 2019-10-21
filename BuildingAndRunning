@@ -4,7 +4,7 @@ Building
 
 In the root directory type 'make' to build the executable:
 
-   $ make [-f makefile]
+   $ make
 
 
 Installing
