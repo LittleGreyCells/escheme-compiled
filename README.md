@@ -43,6 +43,7 @@ while honoring C++ block finalization.
 |  boot | bootstrapping files for interpreter or compiler REP loops|
 |  tests  |    files for escheme regression testing|
 |  docs |      documentation which may or may not be accurate|
+|  help |      escheme syntax related files|
 
 ## Extending escheme
 
@@ -56,5 +57,5 @@ return back to escheme.
 Consult the file _BuildingAndRunning_ to build the interpreter/compiler. Run as an 
 interpeter or reconfigure the system to run a read/compile/eval/print loop.
 
-For a complete list of escheme functions (and a help system) consult syntax.scm/syntax-help.scm in the 
-root directory.
+For a complete list of escheme functions (and a help system) consult syntax-help.scm in the 
+help directory.
