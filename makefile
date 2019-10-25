@@ -1,4 +1,3 @@
-# GNU C++/C Compilers
 CXXC = g++
 CC   = gcc
 
