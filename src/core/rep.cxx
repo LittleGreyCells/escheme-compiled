@@ -18,6 +18,9 @@
 #include "eval/imager.hxx"
 #endif
 
+namespace escheme
+{
+   
 // symbol names for hanging sexprs
 const char* SYSTEM_REPLOOP = "*system-rep-loop*";
 const char* SYSTEM_LOADER  = "*system-loader*";
@@ -170,3 +173,4 @@ void rep_loop()
    }
 }
 
+}

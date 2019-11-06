@@ -11,6 +11,9 @@
 #include "core/regstack.hxx"
 #include "core/intstack.hxx"
 
+namespace escheme
+{
+
 //
 // Evaluator States
 //
@@ -150,6 +153,8 @@ inline void SAVE_RTC()
    save_reg( EVAL::env );
    save_reg( EVAL::rtc_code );
    save_int( 0 );
+}
+
 }
 
 #endif

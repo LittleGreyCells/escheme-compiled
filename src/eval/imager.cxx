@@ -10,6 +10,9 @@
 #include "core/memory.hxx"
 #include "eval.hxx"
 
+namespace escheme
+{
+
 static auto verbose = false;
 
 //
@@ -160,4 +163,6 @@ void IMAGER::image_load( const char* fname )
    regstack.pop();
    
    PIO::close(port);
+}
+
 }

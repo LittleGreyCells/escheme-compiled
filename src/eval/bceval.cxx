@@ -9,6 +9,9 @@
 #include "core/memory.hxx"
 #include "core/funtab.hxx"
 
+namespace escheme
+{
+
 ////////////////////////////////////////////////////
 //
 //           Byte Code Evaluator (BCE)
@@ -803,4 +806,6 @@ void EVAL::bceval( SEXPR exp )
    pc = 0;
    SAVE_RTC();
    bceval();
+}
+
 }

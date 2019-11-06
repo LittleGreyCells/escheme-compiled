@@ -1,6 +1,9 @@
 #ifndef CODE_HXX
 #define CODE_HXX
 
+namespace escheme
+{
+
 //
 // Operation Structure
 //
@@ -113,5 +116,7 @@ enum REGISTERS
 //
 //    This is for symbols (lookup/ref/set) and other structured values.
 //   
+
+}
 
 #endif

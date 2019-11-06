@@ -54,6 +54,9 @@
 //   (done)
 //
 
+namespace escheme
+{
+
 namespace FUNC
 {
    bool eqv( SEXPR e1, SEXPR e2 );
@@ -691,7 +694,7 @@ SEXPR ASSEM::encode()
    ArgstackIterator iter;
    const SEXPR program = guard(iter.getlast(), listp);
    
-   return ::encode( program );
+   return encode( program );
 }
 
 //
@@ -961,7 +964,7 @@ SEXPR ASSEM::decode()
    //
    ArgstackIterator iter;
    const SEXPR code = guard(iter.getlast(), codep);
-   ::decode( code, 0 );
+   decode( code, 0 );
    return null;
 }
 
@@ -981,4 +984,6 @@ void ASSEM::initialize()
    initialize_symbols();
 
    MEMORY::register_marker( assem_marker );
+}
+
 }
