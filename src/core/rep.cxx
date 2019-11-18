@@ -102,7 +102,7 @@ void rep_loop()
    try
    {
 #ifdef BYTE_CODE_EVALUATOR
-      IMAGER::image_load( system_path("compiler/compiler-image.scm").c_str() );
+      IMAGER::image_load( system_path("compiler/compiler-image.scm") );
 #endif
       define_system();
       

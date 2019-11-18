@@ -492,8 +492,8 @@ void EVAL::bceval()
 
 	    if ( _funcp(val) )
 	    {
-	       TRACE( printf( "apply {prim [%s]}\n", FUNTAB::funname(getfunc(val)) ) );
-	       val = getfunc(val)();
+	       TRACE( printf( "apply {prim [%s]}\n", FUNTAB::funname(getprimfunc(val)) ) );
+	       val = getprimfunc(val)();
 	       argstack.removeargc();
 	       break;
 	    }
@@ -517,9 +517,9 @@ void EVAL::bceval()
 	    {
 	       case n_func:
 	       {
-		  TRACE( printf( "apply {prim [%s]}\n", FUNTAB::funname(getfunc(val)) ) );
+		  TRACE( printf( "apply {prim [%s]}\n", FUNTAB::funname(getprimfunc(val)) ) );
 		  // call the primitive directly
-		  val = getfunc(val)();        // was getfunc(fun)
+		  val = getprimfunc(val)();        // was getfunc(fun)
 		  argstack.removeargc();
 
 		  RESTORE_BCE_REGISTERS();
