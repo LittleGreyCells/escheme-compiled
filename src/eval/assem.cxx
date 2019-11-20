@@ -485,7 +485,7 @@ static SEXPR encode( SEXPR program )
 	       append_byte( bv, fixnum(car(x)) );
 	       x = car(cdr(x));
 	       // x == <rest>  ;; #t | #f
-	       append_byte( bv, x == SYMTAB::symbol_true ? 1 : 0 );
+	       append_byte( bv, x == symbol_true ? 1 : 0 );
 	       break;
 	    }
 

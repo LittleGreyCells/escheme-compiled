@@ -229,7 +229,7 @@ void EVAL::bceval()
 	    {\
 	       SEXPR sym = OBJECT( sexprs, bcode, pc );  \
 	       val = value( sym );\
-	       if (val == SYMTAB::symbol_unbound)\
+	       if (val == symbol_unbound)\
 		  ERROR::severe("symbol is unbound", sym);\
 	       pc += 1;\
 	    }
