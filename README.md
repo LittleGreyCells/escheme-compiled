@@ -1,11 +1,11 @@
-escheme _compiled_
+escheme _compiled__
 ================
 
-The escheme interpreter with compilation system
+The escheme interpreter with compilation system.
 
 ## Introduction
 
-See escheme.
+"dyad" -- consisting of two elements or parts
 
 _SICP_ also describes an abstract machine and a compiler to transform 
 scheme expressions into executable code. This second implementation of escheme runs
