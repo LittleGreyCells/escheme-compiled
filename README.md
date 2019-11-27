@@ -1,4 +1,4 @@
-escheme _compiled__
+escheme _compiled_
 ================
 
 The escheme interpreter with compilation system.
