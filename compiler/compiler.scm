@@ -64,7 +64,7 @@
 		  (ec:compile-seq exp env target linkage))
 
 		 ((eq? x 'define) 
-		  (ec:compile-define (ec:normalize-define exp) env target linkage))
+		  (ec:compile-define (ec:transform-nested-defines exp) env target linkage))
 
 		 (else 
 		  (ec:compile-application exp env target linkage))) ))
@@ -917,7 +917,7 @@
 ;;       (set! add (lambda (x y) (+ x y)))
 ;;       (mul a (add a b)) ))
 ;;
-;; (note (10/6/2016): only normalize is used; nested defines are TBD)
+;; note 12/20/2019: nested defines added
 ;;
 
 (define (ec:normalize-define d)
@@ -940,7 +940,7 @@
     (while body
       (let ((x (car body)))
 	(if (and (pair? x) (eq? (car x) 'define))
-	    (set! defines (cons (ec:normalize-define x) defines))
+	    (set! defines (cons (ec:transform-nested-defines x) defines))
 	  (set! sexprs (cons x sexprs)))
 	(set! body (cdr body))))
     (cons defines sexprs)))
