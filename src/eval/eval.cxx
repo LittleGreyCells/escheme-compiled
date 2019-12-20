@@ -255,15 +255,6 @@ void EVAL::append( FRAME frame, SEXPR var, SEXPR val )
    frame->nslots += 1;
 }
 
-void EVAL::register_check( int id, PREDICATE pred, SEXPR reg )
-{
-   if ( !pred(reg) )
-   {
-      printf( "\ncheck(%d) failed: %p(k=%d)\n", id, reg->id(), nodekind(reg) );
-   }
-}
-
-
 SEXPR EVAL::get_evaluator_state()
 {
    const int rs_depth = regstack.getdepth();

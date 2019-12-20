@@ -112,8 +112,6 @@ namespace EVAL
 
    SEXPR create_continuation();
    void restore_continuation( SEXPR continuation );
-
-   void register_check( int id, PREDICATE pre, SEXPR reg );
 }
 
 inline void save_evs( EVSTATE x )  { intstack.push(int(x)); }

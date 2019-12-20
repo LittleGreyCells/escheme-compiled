@@ -7,20 +7,10 @@
 namespace escheme
 {
 
-#ifdef DO_ECE_CHECK
-#define REGISTER_CHECK( id, pred, reg ) register_check( id, pred, reg )
-#else
-#define REGISTER_CHECK( id, pred, reg )
-#endif
-
 #ifdef DO_TRACEINT
 #define TRACE( code ) code;
 #else
 #define TRACE( code )
-#endif
-
-#ifdef DO_ECE_CHECK
-static bool anyenvp( SEXPR n ) { return nullp(n) || envp(n); }
 #endif
 
 static int frameindex = 0;
@@ -145,7 +135,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(unev);
 	    restore_reg(env);
-	    REGISTER_CHECK( 0, anyenvp, env );
 	    argstack.argc = 0;
 	    if ( nullp(unev) )
 	    {
@@ -183,7 +172,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(unev);
 	    restore_reg(env);
-	    REGISTER_CHECK( 1, anyenvp, env );
 	    restore_int(argstack.argc);
 	    argstack.push(val);
 	    unev = cdr(unev);
@@ -368,7 +356,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    // cache and return the value
 	    restore_reg( exp );
-	    REGISTER_CHECK( 2, promisep, exp );
 	    promise_setexp(exp, null);
 	    promise_setval(exp, val);
 	    restore_evs(cont);
@@ -504,7 +491,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(env);
 	    restore_reg(unev);
-	    REGISTER_CHECK( 3, anyenvp, env );
 	    unev = cdr(unev);
 	    next = EVAL_SEQUENCE;
 	    break;
@@ -527,7 +513,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(unev);                    // FETCH <cond> evaluation context
 	    restore_reg(env);                     // 
-	    REGISTER_CHECK( 4, anyenvp, env );
 	    exp = car(unev);                      // exp = <cond>
 	    save_reg(env);                        // SAVE the <cond> evaluation context
 	    save_reg(unev);                       // (<sequence>)
@@ -540,7 +525,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(unev);                    // (<cond> <sequence>)
 	    restore_reg(env);                     // RESTORE cond evaluation context
-	    REGISTER_CHECK( 5, anyenvp, env );
 	    if ( truep(val) )
 	    {
 	       save_reg(env);                     // SAVE the cond evaluation ENV
@@ -597,7 +581,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    restore_evs(cont);
 	    restore_reg(env);
 	    restore_reg(unev);
-	    REGISTER_CHECK( 6, anyenvp, env );
 	    set_variable_value(unev, val, env);
 	    next = cont;
 	    break;
@@ -607,7 +590,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(env);
 	    restore_reg(unev);                   // unev == ((access <var> <env2>) <exp>)
-	    REGISTER_CHECK( 7, anyenvp, env );
 	    exp = car(cdr(unev));                // exp = <exp>
 	    unev = car(cdr(car(unev)));          // unev = <var>
 	    save_reg(val);                       // save(eval(<env2>))
@@ -624,8 +606,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    restore_reg(unev);                   // restore(<var>)
 	    restore_reg(exp);                    // restore(eval(<env2>))
 	    restore_evs(cont);
-	    REGISTER_CHECK( 8, anyenvp, env );
-	    REGISTER_CHECK( 9, anyenvp, exp );
 	    set_variable_value(unev, val, exp);
 	    next = cont;
 	    break;
@@ -652,7 +632,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    restore_evs(cont);
 	    restore_reg(env);
 	    restore_reg(unev);
-	    REGISTER_CHECK( 10, anyenvp, env );
 	    val = lookup(unev, val);   // unev=symbol, val=env
 	    next = cont;
 	    break;
@@ -705,7 +684,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    restore_evs(cont);
 	    restore_reg(env);
 	    restore_reg(unev);
-	    REGISTER_CHECK( 12, anyenvp, env );
 	    if (nullp(env))
 	    {
 	       // set in the global environment [()]
@@ -782,7 +760,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(unev);
 	    restore_reg(env);
-	    REGISTER_CHECK( 13, anyenvp, env );
 	    if (truep(val))
 	    {
 	       exp = car(unev);
@@ -818,7 +795,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    restore_reg(unev);
 	    restore_reg(env);
 	    restore_evs(cont);
-	    REGISTER_CHECK( 14, anyenvp, env );
 	    exp = truep(val) ? car(unev) : car(cdr(unev));
 	    next = EVAL_DISPATCH;
 	    break;
@@ -857,7 +833,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(env);
 	    restore_reg(unev);
-	    REGISTER_CHECK( 15, anyenvp, env );
 	    if (falsep(val))
 	    {
 	       restore_evs(cont);
@@ -904,7 +879,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(env);
 	    restore_reg(unev);
-	    REGISTER_CHECK( 16, anyenvp, env );
 	    if (truep(val))
 	    {
 	       restore_evs(cont);
@@ -977,7 +951,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(unev);
 	    restore_reg(env);
-	    REGISTER_CHECK( 20, anyenvp, env );
 	    restore_int(frameindex);
 	    if ( envp(regstack.top()) )
 	       frameset( getenvframe(regstack.top()), frameindex, val );
@@ -1000,7 +973,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    restore_reg(env);            // assign env (benign for letrec)
 	    restore_reg(unev);           // restore (<body>)
-	    REGISTER_CHECK( 21, anyenvp, env );
 	    next = EVAL_SEQUENCE;
 	    break;
 	 }
