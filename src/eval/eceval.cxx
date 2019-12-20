@@ -713,7 +713,8 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    }
 	    else
 	    {
-	       ERROR::severe("nested defines not supported");
+	       // extend the current environment with var/val pair
+               append( getenvframe(env), unev, val );
 	    }
 	    val = unev;
 	    next = cont;
