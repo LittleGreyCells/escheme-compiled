@@ -712,9 +712,9 @@ static void print_reg( SEXPR bv, int index )
 {
    const unsigned reg = bvecref(bv, index);
    if ( reg < regtab.size() )
-      printf( "%s", regtab[reg].name );
+      PIO::put( regtab[reg].name );
    else
-      printf( "reg?" );
+      PIO::put( "reg?" );
 }
 
 static void print_sexpr( SEXPR sv, SEXPR bv, int index )
@@ -726,45 +726,59 @@ static void print_sexpr( SEXPR sv, SEXPR bv, int index )
 
 static void print_byte( SEXPR bv, int index )
 {
-   printf( "%d", bvecref(bv, index) );
+   char buffer[80];
+   SPRINTF( buffer, "%d", bvecref(bv, index) );
+   PIO::put( buffer );
 }
 
 static void print_int16( SEXPR bv, int index )
 {
-   printf( "%d", get16(bv, index) );
+   char buffer[80];
+   SPRINTF( buffer, "%d",get16(bv, index) );
+   PIO::put( buffer );
 }
 
 static void print_code( int op, SEXPR bv, int index )
 {
+   char buffer[80];
    const int max_len = 5;
 
    for ( int i = 0; i < max_len; ++i )
       if ( i < optab[op].nbytes )
-	 printf( "%02x ", bvecref(bv, index+i) );
+      {
+	 SPRINTF( buffer, "%02x ", bvecref(bv, index+i) );
+         PIO::put( buffer );
+      }
       else
-	 printf( "%2s ", " ." );
+      {
+	 SPRINTF( buffer, "%2s ", " ." );
+         PIO::put( buffer );
+      }
 }
 
 static void indent( int level )
 {
    for ( int i = 0; i < level; ++i )
-      printf( "  " );
+      PIO::put( "  " );
 }
 
 
 static void decode( SEXPR code, int level=0 )
 {
+   char buffer[80];
    SEXPR bv = code_getbcodes(code);
    SEXPR sv = code_getsexprs(code);
    int index = 0;
 
    indent( level );
-   printf( "%d:begin\n", level );
+   SPRINTF( buffer, "%d:begin\n", level );
+   PIO::put( buffer );
 
    indent( level );
-   printf( "%d:sexprs ", level );
+   SPRINTF( buffer, "%d:sexprs ", level );
+   PIO::put( buffer );
    PRINTER::print( sv );
-   printf( "\n" );
+   PIO::put( "\n" );
 
    while ( index < getbveclength(bv) )
    {
@@ -777,9 +791,10 @@ static void decode( SEXPR code, int level=0 )
       }
 
       indent( level );
-      printf( "%d:%04d: ", level, index );
+      SPRINTF( buffer, "%d:%04d: ", level, index );
+      PIO::put( buffer );
       print_code( op, bv, index );
-      printf( "%s", optab[op].name );
+      PIO::put( optab[op].name );
 
       switch ( op )
       {
@@ -790,7 +805,6 @@ static void decode( SEXPR code, int level=0 )
 	 case OP_SAVE_EXP:     // op=4
 	 case OP_SAVE_ARGC:    // op=5
 	 case OP_SAVE_xxxx:    // op=6
-
 	 case OP_RESTORE_VAL:  // op=7
 	 case OP_RESTORE_AUX:  // op=8
 	 case OP_RESTORE_ENV:  // op=9
@@ -798,11 +812,9 @@ static void decode( SEXPR code, int level=0 )
 	 case OP_RESTORE_EXP:  // op=11
 	 case OP_RESTORE_ARGC: // op=12   
 	 case OP_RESTORE_xxxx: // op=13
-
 	 case OP_ZERO_ARGC:    // op=14
 	 case OP_PUSH_ARG:     // op=15
 	 case OP_POP_ARGS:     // op=16
-
 	 case OP_APPLY:        // op=26
 	 case OP_APPLY_CONT:   // op=27
 	 case OP_TEST_TRUE:    // op=28
@@ -818,89 +830,89 @@ static void decode( SEXPR code, int level=0 )
 	 case OP_FORCE_VALUE:  // op=43
 	 case OP_RTE:          //
 	 case OP_RTC:          //
-	    printf("\n");
+            PIO::put( "\n" );
 	    break;
 	    
 	 case OP_ASSIGN_REG:   // op=17, [val,]reg
 	 case OP_ASSIGN_REG_ARG:
 	 case OP_ASSIGN_REG_APPLY:
 	 case OP_ASSIGN_REG_APPLYC:
-	    printf(" [val,]");
+            PIO::put( " [val,]" );
 	    print_reg( bv, index+1 );
-	    printf("\n");
+            PIO::put( "\n" );
 	    break;
 
 	 case OP_ASSIGN_OBJ:   // op=18, [val,]value
 	 case OP_ASSIGN_OBJ_ARG:
 	 case OP_ASSIGN_OBJ_APPLY:
 	 case OP_ASSIGN_OBJ_APPLYC:
-	    printf(" [val,]");
+            PIO::put( " [val,]" );
 	    print_sexpr( sv, bv, index+1 );
-	    printf("\n");
+            PIO::put( "\n" );
 	    break;
 	    
 	 case OP_GREF:         // op=19, [val,]sym
 	 case OP_GREF_ARG:
 	 case OP_GREF_APPLY:
 	 case OP_GREF_APPLYC:
-	    printf(" [val,]");
+            PIO::put( " [val,]" );
 	    print_sexpr( sv, bv, index+1 );
-	    printf("\n");
+            PIO::put( "\n" );
 	    break;
 
 	 case OP_GSET:         // op=20, sym[,val]
-	    printf(" ");
+            PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
-	    printf("[,val]");
-	    printf("\n");
+            PIO::put( "[,val]" );
+            PIO::put( "\n" );
 	    break;
 	    
 	 case OP_FREF:         // op=21, [val],depth,index[,env]
 	 case OP_FREF_ARG:
 	 case OP_FREF_APPLY:
 	 case OP_FREF_APPLYC:
-	    printf(" [val,]");
+	    PIO::put( " [val,]" );
 	    print_byte( bv, index+1 );
-	    printf(",");
+	    PIO::put( "," );
 	    print_byte( bv, index+2 );
-	    printf("\n");
+	    PIO::put( "\n" );
 	    break;
 
 	 case OP_FSET:         // op=22, depth,index,[val],[env]
-	    printf(" ");
+	    PIO::put( " " );
 	    print_byte( bv, index+1 );
-	    printf(",");
+	    PIO::put( "," );
 	    print_byte( bv, index+2 );
-	    printf("\n");
+	    PIO::put( "\n" );
 	    break;
 	    
 	 case OP_GET_ACCESS:   // op=23, [val],sym,[val]
 	 case OP_GET_ACCESS_ARG:
 	 case OP_GET_ACCESS_APPLY:
 	 case OP_GET_ACCESS_APPLYC:
-	    printf(" [val,]");
+	    PIO::put( " [val,]" );
 	    print_sexpr( sv, bv, index+1 );
-	    printf("\n");
+	    PIO::put( "\n" );
 	    break;
 
 	 case OP_SET_ACCESS:   // op=24, [val,]sym[,val][,exp/env]
-	    printf(" [val,]");
+	    PIO::put( " [val,]" );
 	    print_sexpr( sv, bv, index+1 );
-	    printf(" ");
-	    printf("[,exp]");
-	    printf("\n");
+	    PIO::put( " " );
+	    PIO::put( "[,exp]" );
+	    PIO::put( "\n" );
 	    break;
 	 
 	 case OP_LAMBDA:       // op=25, [val,]bcode,params,num,rest[,env]
-	    printf(" [val,]");
+	    PIO::put( " [val,]" );
 	    print_sexpr( sv, bv, index+1 );
-	    printf(",");
+	    PIO::put( "," );
 	    print_sexpr( sv, bv, index+2 );
-	    printf(",");
+	    PIO::put( "," );
 	    print_byte( bv, index+3 );
-	    printf(",");
+	    PIO::put( "," );
 	    print_byte( bv, index+4 );
-	    printf("\n");
+	    PIO::put( "\n" );
 	    {
 	       const int code_index = bvecref( bv, index+1 );
 	       decode( vectorref( sv, code_index ), level+1 );
@@ -908,9 +920,9 @@ static void decode( SEXPR code, int level=0 )
 	    break;
 	    	    
 	 case OP_DELAY:       // op=42, [val,]bcode
-	    printf(" [val,]");
+	    PIO::put( " [val,]" );
 	    print_sexpr( sv, bv, index+1 );
-	    printf("\n");
+	    PIO::put( "\n" );
 	    {
 	       const int code_index = bvecref( bv, index+1 );
 	       decode( vectorref( sv, code_index ), level+1 );
@@ -918,32 +930,32 @@ static void decode( SEXPR code, int level=0 )
 	    break;
 	    	    
 	 case OP_BRANCH:       // op=30, pc=bcode-index (3b)
-	    printf(" ");
+	    PIO::put( " " );
 	    print_int16( bv, index+1 );
-	    printf("\n");
+	    PIO::put( "\n" );
 	    break;
 	    
 	 case OP_GOTO:         // op=32, pc=bcode-index (3b)
-	    printf(" ");
+	    PIO::put( " " );
 	    print_int16( bv, index+1 );
-	    printf("\n");
+	    PIO::put( "\n" );
 	    break;
 	    	    
 	 case OP_EXTEND_ENV:   // op=40, reg,nvar,nvars
-	    printf(" ");
+	    PIO::put( " " );
 	    print_reg( bv, index+1 );
-	    printf(",");
+	    PIO::put( "," );
 	    print_byte( bv, index+2 );
-	    printf(",");
+	    PIO::put( "," );
 	    print_sexpr( sv, bv, index+3 );
-	    printf("\n");
+	    PIO::put( "\n" );
 	    break;
 	    	    
 	 case OP_ESET:        // op=41, index
-	    printf(" ");
+	    PIO::put( " " );
 	    print_byte( bv, index+1 );
-	    printf("[,val]");
-	    printf("\n");
+	    PIO::put( "[,val]" );
+	    PIO::put( "\n" );
 	    break;
 	    	    
 	 default:
@@ -954,7 +966,8 @@ static void decode( SEXPR code, int level=0 )
    }
 
    indent( level );
-   printf( "%d:end\n", level );
+   SPRINTF( buffer, "%d:end\n", level );
+   PIO::put( buffer );
 }
 
 SEXPR ASSEM::decode()

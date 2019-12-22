@@ -60,6 +60,7 @@ DEFINES += -DOBJECT_CACHE
 
 $(APP) : $(OBJS) $(NOISE)/linenoise.o
 	$(CXXC) -o $@ $(OBJS) $(NOISE)/linenoise.o $(LFLAGS)
+	ln -sf $(APP) escheme
 
 %.o	: %.cxx
 	$(CXXC) $(DEFINES) $(INCLUDES) -c $(CFLAGS) $< -o $@

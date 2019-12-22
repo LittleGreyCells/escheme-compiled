@@ -95,7 +95,7 @@ void ERROR::print_active_frame()
    for ( int i = 0; anyp(env); ++i )
    {
       char buffer[80];
-      sprintf( buffer, "  level %d ", i );
+      SPRINTF( buffer, "  level %d ", i );
       PIO::put( buffer );
       print_frame( env );
       PIO::put( "\n" );
@@ -109,21 +109,21 @@ void ERROR::print_stacktrace()
    int n = 0;
 
    char buffer[80];
-   sprintf( buffer, "stacktrace (depth=%d)\n", top+1 );
+   SPRINTF( buffer, "stacktrace (depth=%d)\n", top+1 );
    PIO::put( buffer );
 
    for ( int i = top; i >= 0; --i )
    {
       SEXPR item = regstack[i];
 
-      sprintf( buffer, "  depth %d ", top-i );
+      SPRINTF( buffer, "  depth %d ", top-i );
       PIO::put( buffer );
       PRINTER::print( item );
       PIO::put( "\n" );
 
       if ( envp(item) )
       {
-	 sprintf( buffer, "  frame %d ", n++ );
+	 SPRINTF( buffer, "  frame %d ", n++ );
          PIO::put( buffer );
 	 print_frame( item );
          PIO::put( "\n" );
