@@ -133,9 +133,6 @@ void rep_loop()
       }
       catch ( ERROR::SevereError& )
       {
-	 ERROR::print_active_frame();
-	 ERROR::print_stacktrace();
-
 	 exp = SYMTAB::enter(TOPLEVEL);
 
 	 const SEXPR val = getvalue(exp);

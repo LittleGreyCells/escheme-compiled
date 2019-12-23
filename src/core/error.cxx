@@ -12,6 +12,9 @@
 namespace escheme
 {
 
+static void print_active_frame();
+static void print_stacktrace();
+
 void ERROR::severe( const char* s, SEXPR exp1, SEXPR exp2 )
 {
    PIO::put("error: ");
@@ -35,6 +38,11 @@ void ERROR::severe( const char* s, SEXPR exp1, SEXPR exp2 )
    
    PIO::put("\n");
 
+   print_active_frame();
+#if 0
+   print_stacktrace();
+#endif
+   
    throw SevereError();
 }
 
@@ -64,23 +72,33 @@ void ERROR::warning( const char* s, SEXPR exp )
    PIO::put("\n");
 }
 
-void ERROR::print_frame( SEXPR env )
+static void print_frame( SEXPR env )
 {
-   if ( anyp(env) && envp(env) )
+   if ( nullp(env) )
+   {
+      PIO::put( "<global>" );
+   }
+   else
    {
       FRAME frame = getenvframe(env);
       SEXPR closure = getframeclosure(frame);
       
       if ( closurep(closure) )
       {
+	 PRINTER::print( closure );
+         PIO::put( ", formals=" );
 	 PRINTER::print( getclosurevars(closure) );
-         PIO::put( ", " );
+         PIO::put( ", body=" );
 	 PRINTER::print( getclosurecode(closure) );
+      }
+      else
+      {
+         PRINTER::print( closure );
       }
    }
 }
 
-void ERROR::print_active_frame()
+static void print_active_frame()
 {
    PIO::put( "active frame\n" );
 
@@ -92,21 +110,19 @@ void ERROR::print_active_frame()
       return;
    }
 
-   for ( int i = 0; anyp(env); ++i )
+   for ( int i = 0; anyp(env); ++i, env = getenvbase(env) )
    {
       char buffer[80];
       SPRINTF( buffer, "  level %d ", i );
       PIO::put( buffer );
       print_frame( env );
       PIO::put( "\n" );
-      env = getenvbase(env);
    }
 }
 
-void ERROR::print_stacktrace()
+static void print_stacktrace()
 {
    const int top = regstack.gettop();
-   int n = 0;
 
    char buffer[80];
    SPRINTF( buffer, "stacktrace (depth=%d)\n", top+1 );
@@ -120,14 +136,6 @@ void ERROR::print_stacktrace()
       PIO::put( buffer );
       PRINTER::print( item );
       PIO::put( "\n" );
-
-      if ( envp(item) )
-      {
-	 SPRINTF( buffer, "  frame %d ", n++ );
-         PIO::put( buffer );
-	 print_frame( item );
-         PIO::put( "\n" );
-      }
    }
 }
 
