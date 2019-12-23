@@ -344,7 +344,7 @@ void EVAL::bceval()
 	 }
 
 #define OP_GET_ACCESS_CODE()\
-         val = lookup( OBJECT( sexprs, bcode, pc ), val );      \
+         val = lookup( OBJECT( sexprs, bcode, pc ), val );\
          pc += 1;
 
 	 case OP_GET_ACCESS:
