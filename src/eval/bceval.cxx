@@ -58,7 +58,7 @@ SEXPR* regs[] =
 
 //
 // Wrap the bcodes rather than save a ref to the underlying data.
-// In future object caching schemes the underlying data will be relocated.
+// In future object caching schemes the underlying data may be relocated.
 //
 
 class BCODE
@@ -69,11 +69,34 @@ public:
    BYTE operator[]( int index ) const { return getbvecdata(bcodes)[index]; }
 };
 
-inline auto& REGISTER( const BCODE& bcode, int index ) { return *regs[bcode[index]]; }
-inline auto OBJECT( const SEXPR& sexprs, const BCODE& bcode, int index )  { return vectorref( sexprs, bcode[index] ); }
-inline auto GET16( const BCODE& bcode, int index ) { return bcode[index] + (bcode[index+1] << 8); }
-inline bool FALSEP( SEXPR x ) { return (x == null) || (x == symbol_false); }
-inline bool TRUEP( SEXPR x ) { return !FALSEP(x); }
+inline auto& REGISTER( const BCODE& bcode, int index )
+{
+   return *regs[bcode[index]];
+}
+
+inline auto OBJECT( const SEXPR& sexprs, const BCODE& bcode, int index )
+{
+   return vectorref( sexprs, bcode[index] );
+}
+
+inline auto GET16( const BCODE& bcode, int index )
+{
+   return bcode[index] + (bcode[index+1] << 8);
+}
+
+inline bool FALSEP( SEXPR x )
+{
+   return (x == null) || (x == symbol_false);
+}
+
+inline bool TRUEP( SEXPR x )
+{
+   return !FALSEP(x);
+}
+
+//
+// BCEVAL
+//
 
 void EVAL::bceval()
 {
@@ -184,7 +207,7 @@ void EVAL::bceval()
 	    break;
 
 #define OP_ASSIGN_REG_CODE()\
-	    val = REGISTER( bcode, pc );         \
+	    val = REGISTER( bcode, pc );\
 	    pc += 1;
 
 	 case OP_ASSIGN_REG:
@@ -205,8 +228,8 @@ void EVAL::bceval()
 	    goto start_apply_cont;
 
 #define OP_ASSIGN_OBJ_CODE()\
-	    val = OBJECT( sexprs, bcode, pc );   \
-	    pc += 1;\
+	    val = OBJECT( sexprs, bcode, pc );\
+	    pc += 1;
 
 	 case OP_ASSIGN_OBJ:
 	    OP_ASSIGN_OBJ_CODE();
@@ -227,7 +250,7 @@ void EVAL::bceval()
 
 #define OP_GREF_CODE()\
 	    {\
-	       SEXPR sym = OBJECT( sexprs, bcode, pc );  \
+	       SEXPR sym = OBJECT( sexprs, bcode, pc );\
 	       val = value( sym );\
 	       if (val == symbol_unbound)\
 		  ERROR::severe("symbol is unbound", sym);\
@@ -258,6 +281,7 @@ void EVAL::bceval()
 	    break;
 	 }
 
+#ifdef CHECK_BCE_ENV
 #define OP_FREF_CODE()\
 	 {\
 	    int d = bcode[pc];\
@@ -271,7 +295,17 @@ void EVAL::bceval()
 	    val = frameref( getenvframe(e), bcode[pc+1] );\
 	    pc += 2;\
 	 }
-
+#else
+#define OP_FREF_CODE()\
+	 {\
+	    int d = bcode[pc];\
+	    SEXPR e = guard(env, envp);\
+	    while (d-- > 0)\
+	       e = guard(getenvbase(e), envp);\
+	    val = frameref( getenvframe(e), bcode[pc+1] );\
+	    pc += 2;\
+	 }
+#endif
 	 case OP_FREF:
 	    OP_FREF_CODE();
 	    break;
@@ -298,10 +332,12 @@ void EVAL::bceval()
 	    SEXPR e = guard(env, envp);
 	    while (d-- > 0)
 	       e = guard(getenvbase(e), envp);
+#ifdef CHECK_BCE_ENV
 	    if ( nullp(e) )
 	       ERROR::severe( "OP_FSET: null env", e );
 	    if ( getenvframe(e) == nullptr )
 	       ERROR::severe( "OP_FSET: empty frame", e );
+#endif
 	    frameset( getenvframe(e), bcode[pc+1], val );
 	    pc += 2;
 	    break;
@@ -366,7 +402,7 @@ void EVAL::bceval()
 	 case OP_MAP_INIT:
 	 {
 	    TRACE( printf( "map-init\n" ) );
-	    if (argstack.argc < 2)
+	    if ( argstack.argc < 2 )
 	       ERROR::severe( "map requires two or more arguments" );   
 	    save_int( argstack.argc );
 	    save_reg( MEMORY::cons(null, null) );    // val == (())
@@ -521,7 +557,6 @@ void EVAL::bceval()
 		  // call the primitive directly
 		  val = getprimfunc(val)();        // was getfunc(fun)
 		  argstack.removeargc();
-
 		  RESTORE_BCE_REGISTERS();
 		  goto start_bceval;
 	       }
@@ -529,10 +564,8 @@ void EVAL::bceval()
 	       case n_closure:
 	       {
 		  TRACE( printf( "apply {closure: %p}\n", val ) );	
-  
 		  env = extend_env_fun(val);
 		  unev = getclosurecode(val);
-
 		  if ( _codep(unev) )
 		  {
 		     pc = 0;
@@ -563,7 +596,7 @@ void EVAL::bceval()
 		  TRACE( printf( "apply {eval}\n" ) );
 		  ArgstackIterator iter;
 		  exp = iter.getarg();
-		  if (iter.more())
+		  if ( iter.more() )
 		  {
 		     env = iter.getlast();
 		     if (anyp(env))
@@ -608,11 +641,9 @@ void EVAL::bceval()
 		  ArgstackIterator iter;
 		  SEXPR ccresult = iter.more() ? iter.getlast() : null;
 		  argstack.removeargc();
-
 		  // replace the entire execution context
 		  restore_continuation(val);
 		  val = ccresult;                                       // now assign val
-
 		  // determine if the continuation should resume here or in the interpereter
 		  if ( _codep( regstack.top() ) )
 		  {
