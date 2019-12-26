@@ -29,8 +29,10 @@
 
 (define ec:get-statements caddr)
 
+(define ec:the-global-env (the-environment))
+
 (define (compile exp . env)
-  (let ((env (if (null? env) '() (car env))))
+  (let ((env (if (null? env) ec:the-global-env (car env))))
     (assemble (ec:get-statements (ec:compile exp env 'val 'return)))))
 
 (define (ec:compile exp env target linkage)
