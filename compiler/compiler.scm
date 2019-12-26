@@ -30,6 +30,7 @@
 (define ec:get-statements caddr)
 
 (define ec:the-global-env (the-environment))
+(define (ec:global-env? exp) (eq? exp ec:the-global-env))
 
 (define (compile exp . env)
   (let ((env (if (null? env) ec:the-global-env (car env))))
@@ -232,7 +233,7 @@
 ;; SYMBOL LOOKUP
 ;;
 (define (ec:lookup-symbol sym env depth)
-  (if (null? env)
+  (if (ec:global-env? env)
       '()
    (let ((bindings (environment-bindings env))
 	 (index 0)
