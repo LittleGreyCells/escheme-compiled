@@ -44,7 +44,8 @@ bool oddp(const SEXPR s) { return (abs(getfixnum(guard(s, fixnump))) % 2) == 1; 
 bool evenp(const SEXPR s) { return (getfixnum(guard(s, fixnump)) % 2) == 0; }
 bool exactp(const SEXPR) { return false; }
 bool inexactp(const SEXPR) { return true; }
-bool string_nullp(SEXPR s) { return getstringlength(guard(s, stringp)) == 0; }
+bool string_nullp(const SEXPR s) { return getstringlength(guard(s, stringp)) == 0; }
+bool procedurep(const SEXPR s) { return primp(s) || closurep(s); }
 
 SEXPR FUNC::predicate( PREDICATE pred )
 {
@@ -1393,21 +1394,8 @@ SEXPR FUNC::get_output_string()
    return MEMORY::string( str->c_str() );
 }
 
-
 //
-// Predicates
-//
-
-SEXPR FUNC::procedurep()
-{
-   ArgstackIterator iter;
-   const SEXPR arg = iter.getlast();
-   return (primp(arg) || closurep(arg)) ? symbol_true : symbol_false;
-}
-
-
-//
-// string
+// strings
 //
 
 SEXPR FUNC::string_length()
@@ -1427,24 +1415,15 @@ SEXPR FUNC::string_append()
    if ( !iter.more() )
       return MEMORY::string_null;
 
-   auto slen = 0;
+   std::string ss;
 
    while ( iter.more() )
    {
-      SEXPR s = guard(iter.getarg(), stringp);
-      slen += getstringlength(s);
+      auto s = guard(iter.getarg(), stringp);
+      ss.append( getstringdata(s) );
    }
 
-   iter.reset();
-
-   SEXPR n = MEMORY::string(slen);
-   while ( iter.more() )
-   {
-      SEXPR s = iter.getarg();
-      strcat(getstringdata(n), getstringdata(s));
-   }
-
-   return n;
+   return MEMORY::string( ss );
 }
 
 SEXPR FUNC::string_ref()
@@ -1500,10 +1479,8 @@ SEXPR FUNC::substring()
       else
       {
 	 const int slen = end - start;
-	 SEXPR ss = MEMORY::string(slen);
-	 strncpy( getstringdata(ss), &getstringdata(s)[start], slen );
-	 getstringdata(ss)[slen] = '\0';
-	 return ss;
+         std::string ss( &getstringdata(s)[start], slen );
+         return MEMORY::string( ss );
       }
    }
    else
@@ -1584,14 +1561,12 @@ SEXPR FUNC::list_to_string()
    SEXPR list = guard(iter.getarg(), listp);
    const int len = list_length(list);
 
-   SEXPR s = MEMORY::string(len);
-
+   std::string s;
+   
    for ( int i = 0; i < len; ++i, list = cdr(list) )
-      getstringdata(s)[i] = getcharacter(guard(car(list), charp));
+      s.push_back( getcharacter(guard(car(list), charp)) );
 
-   getstringdata(s)[len] = '\0';
-
-   return s;
+   return MEMORY::string( s );
 }
 
 SEXPR FUNC::string_to_list()
@@ -1651,6 +1626,10 @@ SEXPR FUNC::string_LTci() { return string_compare(LTop, ::strcasecmp); }
 SEXPR FUNC::string_LEci() { return string_compare(LEop, ::strcasecmp); }
 SEXPR FUNC::string_GTci() { return string_compare(GTop, ::strcasecmp); }
 SEXPR FUNC::string_GEci() { return string_compare(GEop, ::strcasecmp); }
+
+//
+// chars
+//
 
 static SEXPR char_compare( RelOp op, int ci )
 {

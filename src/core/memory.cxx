@@ -372,11 +372,11 @@ SEXPR MEMORY::symbol( const char* s )        { return new_symbol( s, strlen(s) )
 SEXPR MEMORY::symbol( const std::string& s ) { return new_symbol( s.c_str(), s.length() ); }
 
 
-SEXPR MEMORY::string( UINT32 length )        // (<length> . "")
+static SEXPR make_string_null()
 {
    auto n = newnode(n_string);
-   setstringlength( n, length );
-   setstringdata( n, duplicate("", length) );
+   setstringlength( n, 0 );
+   setstringdata( n, duplicate("", 0) );
    return n;
 }
 
@@ -517,8 +517,8 @@ void MEMORY::initialize()
 {
    FreeNodeList = null;
    NewNodeBlock();
-   string_null = string( 0u );
-   vector_null = vector( 0u );
+   string_null = make_string_null();
+   vector_null = vector( 0 );
    listhead = cons(null, null);
 }
 
