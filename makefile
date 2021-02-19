@@ -3,7 +3,7 @@ CC   = gcc
 
 CWD = $(shell pwd)
 
-APP    = escheme2
+APP    = escheme-compiled
 
 SRCLOC = $(CWD)/src
 REP    = $(SRCLOC)/rep
@@ -60,7 +60,6 @@ DEFINES += -DDO_COMBOS
 
 $(APP) : $(OBJS) $(NOISE)/linenoise.o
 	$(CXXC) -o $@ $(OBJS) $(NOISE)/linenoise.o $(LFLAGS)
-	ln -sf $(APP) escheme
 
 %.o	: %.cxx
 	$(CXXC) $(DEFINES) $(INCLUDES) -c $(CFLAGS) $< -o $@
@@ -71,7 +70,6 @@ $(NOISE)/linenoise.o : $(NOISE)/linenoise.c
 clean 	:
 	find . -name "*.o" -delete
 	find . -name "*~" -delete
-	rm -f escheme
 	rm -f $(APP)
 
 install : $(APP)

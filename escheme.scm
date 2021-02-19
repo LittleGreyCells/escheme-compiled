@@ -10,7 +10,7 @@
       (interp #f)
       (usage 
        (lambda ()
-	 (display "escheme2 [(-i | --interpreter) | (-h | --help)] [files...]" )
+	 (display "escheme-compiled [(-i | --interpreter) | (-h | --help)] [files...]" )
          (newline))))
   (let ((arg (car args)))
     (cond ((or (equal? arg "--interpreter") (equal? arg "-i"))

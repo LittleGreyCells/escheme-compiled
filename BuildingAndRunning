@@ -24,14 +24,14 @@ The escheme system can be removed just as easily.
 
 Running
 
-usage: escheme2 [(-i | --interpreter) | (-h | --help)] [files...]
+usage: escheme-compiled [(-i | --interpreter) | (-h | --help)] [files...]
 
 I. The Compiler
 
 To run the compiler based REP loop, simply invoke escheme. 
 A banner is printed and the linenoise prompt is displayed:
 
-   $ ./escheme2
+   $ ./escheme-compiled
    escheme v2.0 (compiler)
 
    bce>
@@ -49,7 +49,7 @@ II. The Interpreter
 To run the interpreter, invoke escheme  with -i/--intepreter. 
 A banner is printed and the linenoise prompt is displayed:
 
-   $ ./escheme2 -i
+   $ ./escheme-compiled -i
    escheme v2.0 (interpreter)
 
    ece>
@@ -71,7 +71,7 @@ Two suggested uses for the compiler:
 This requires booting into the interpreter. To boot into the interpreter
 from the build directory invoke escheme with -i/--interpreter option:
 
-   $ ./escheme2 -i
+   $ ./escheme-compiled -i
    escheme v2.0 (interpreter)
 
    # load the compiler
@@ -88,7 +88,7 @@ from the build directory invoke escheme with -i/--interpreter option:
 
 To boot into the compiler capable system simply invoke escheme:
 
-   $ ./escheme2
+   $ ./escheme-compiled
    escheme v2.0 (compiler)
 
    bce>
