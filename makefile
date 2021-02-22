@@ -20,7 +20,7 @@ SRCS	= \
 	$(EVAL)/imager.cxx \
 	$(EVAL)/assem.cxx \
 	$(CORE)/sexpr.cxx \
-	$(CORE)/escheme.cxx \
+	$(CORE)/main.cxx \
 	$(CORE)/error.cxx \
 	$(CORE)/argstack.cxx \
 	$(CORE)/regstack.cxx \
