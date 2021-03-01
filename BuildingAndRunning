@@ -99,7 +99,7 @@ Let's define a compiled version of double:
    bce> (double 10)
    20
 
-As expected that was easy. The code produced:
+The code produced:
 
   bce> (decode-fun double)
   0:begin
