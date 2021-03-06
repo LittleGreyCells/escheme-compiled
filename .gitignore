@@ -1,5 +1,4 @@
-escheme
-escheme2
+escheme-compiled
 src/core/*.o
 src/eval/*.o
 src/rep/*.o
