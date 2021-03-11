@@ -36,15 +36,6 @@ enum EvalSexprRegisters
    ER_EXP,
 };
 
-const char* regnames[] = 
-{ 
-   "val", 
-   "aux", 
-   "env", 
-   "unev", 
-   "exp",
-};
-
 //
 // (*regs[<spec>]) = <value>
 //
@@ -262,21 +253,6 @@ void EVAL::bceval()
 	    break;
 	 }
 
-#ifdef CHECK_BCE_ENV
-#define OP_FREF_CODE()\
-	 {\
-	    int d = bcode[pc];\
-	    SEXPR e = guard(env, envp);\
-	    while (d-- > 0)\
-	       e = guard(getenvbase(e), envp);\
-	    if ( nullp(e) )\
-	       ERROR::severe( "OP_FREF: null env", e );\
-	    if ( getenvframe(e) == nullptr )\
-	       ERROR::severe( "OP_FREF: empty frame", e );\
-	    val = frameref( getenvframe(e), bcode[pc+1] );\
-	    pc += 2;\
-	 }
-#else
 #define OP_FREF_CODE()\
 	 {\
 	    int d = bcode[pc];\
@@ -286,7 +262,7 @@ void EVAL::bceval()
 	    val = frameref( getenvframe(e), bcode[pc+1] );\
 	    pc += 2;\
 	 }
-#endif
+
 	 case OP_FREF:
 	    OP_FREF_CODE();
 	    break;
@@ -313,20 +289,14 @@ void EVAL::bceval()
 	    SEXPR e = guard(env, envp);
 	    while (d-- > 0)
 	       e = guard(getenvbase(e), envp);
-#ifdef CHECK_BCE_ENV
-	    if ( nullp(e) )
-	       ERROR::severe( "OP_FSET: null env", e );
-	    if ( getenvframe(e) == nullptr )
-	       ERROR::severe( "OP_FSET: empty frame", e );
-#endif
 	    frameset( getenvframe(e), bcode[pc+1], val );
 	    pc += 2;
 	    break;
 	 }
 
 #define OP_GET_ACCESS_CODE()\
-         val = lookup( bcode.OBJECT( pc ), val );\
-         pc += 1;
+            val = lookup( bcode.OBJECT( pc ), val );\
+            pc += 1;
 
 	 case OP_GET_ACCESS:
 	    OP_GET_ACCESS_CODE();
