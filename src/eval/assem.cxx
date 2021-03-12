@@ -49,8 +49,8 @@
 //   (eset <index>)
 //   (delay <code>)
 //   (save-cont (label <label>))
-//   <combos>
 //   (rte)
+//   (rtc)
 //   (done)
 //
 
@@ -121,23 +121,6 @@ static std::vector<OpcodeEntry> optab =
    { OP_ESET,              2, "eset"         , nullptr }, // op=41
    { OP_DELAY,             2, "delay"        , nullptr }, // op=42
    { OP_FORCE_VALUE,       1, "force-value"  , nullptr }, // op=43
-
-   // combos
-   { OP_ASSIGN_REG_ARG,    2, "assign-reg-arg"    , nullptr },
-   { OP_ASSIGN_OBJ_ARG,    2, "assign-obj-arg"    , nullptr },
-   { OP_GREF_ARG,          2, "gref-arg"          , nullptr },
-   { OP_FREF_ARG,          3, "fref-arg"          , nullptr },
-   { OP_GET_ACCESS_ARG,    2, "get-access-arg"    , nullptr },
-   { OP_ASSIGN_REG_APPLY,  2, "assign-reg-apply"  , nullptr },
-   { OP_ASSIGN_OBJ_APPLY,  2, "assign-obj-apply"  , nullptr },
-   { OP_GREF_APPLY,        2, "gref-apply"        , nullptr },
-   { OP_FREF_APPLY,        3, "fref-apply"        , nullptr },
-   { OP_GET_ACCESS_APPLY,  2, "get-access-apply"  , nullptr },
-   { OP_ASSIGN_REG_APPLYC, 2, "assign-reg-applyc" , nullptr },
-   { OP_ASSIGN_OBJ_APPLYC, 2, "assign-obj-applyc" , nullptr },
-   { OP_GREF_APPLYC,       2, "gref-applyc"       , nullptr },
-   { OP_FREF_APPLYC,       3, "fref-applyc"       , nullptr },
-   { OP_GET_ACCESS_APPLYC, 2, "get-access-applyc" , nullptr },
 
    // exit(s)
    { OP_RTE,               1, "rte" , nullptr },
@@ -322,11 +305,6 @@ static SEXPR encode( SEXPR program )
    //   there could be code objects contained for nested closures
    sv_stack.push_back( &sv );
 
-#ifdef DO_COMBOS
-   // for peep fixups
-   int prev_op = 0;
-#endif
-
    while ( !nullp(program) )
    {
       SEXPR x = car(program);
@@ -334,11 +312,6 @@ static SEXPR encode( SEXPR program )
       if ( symbolp(x) || fixnump(x) )
       {
 	 add_assoc( labels, x, bv.size() );
-
-#ifdef DO_COMBOS
-	 // flush pipe
-	 prev_op = 0;
-#endif
       }
       else
       {
@@ -570,67 +543,8 @@ static SEXPR encode( SEXPR program )
 	    case OP_APPLY:
 	    case OP_APPLY_CONT:
 	    {
-#ifdef DO_COMBOS
-	       // 
-	       // simple peep hole optimizations
-	       //   two instruction sequences are merged into one
-	       //
-	       switch ( prev_op )
-	       {
-		  case OP_ASSIGN_REG:
-		  {
-		     // convert assign to assign combo (reg)
-		     if ( op == OP_PUSH_ARG ) 	op = OP_ASSIGN_REG_ARG;
-		     else if ( op == OP_APPLY )	op = OP_ASSIGN_REG_APPLY;
-		     else			op = OP_ASSIGN_REG_APPLYC;
-		     bv[ bv.size() - optab[prev_op].nbytes ] = op;
-		     break;
-		  }
-		  case OP_ASSIGN_OBJ:
-		  {
-		     // convert assign to assign combo (obj)
-		     if ( op == OP_PUSH_ARG )	op = OP_ASSIGN_OBJ_ARG;
-		     else if ( op == OP_APPLY )	op = OP_ASSIGN_OBJ_APPLY;
-		     else			op = OP_ASSIGN_OBJ_APPLYC;
-		     bv[ bv.size() - optab[prev_op].nbytes ] = op;
-		     break;
-		  }
-		  case OP_GREF:
-		  {
-		     // convert gref to gref combo
-		     if ( op == OP_PUSH_ARG )	op = OP_GREF_ARG;
-		     else if ( op == OP_APPLY )	op = OP_GREF_APPLY;
-		     else			op = OP_GREF_APPLYC;
-		     bv[ bv.size() - optab[prev_op].nbytes ] = op;
-		     break;
-		  }
-		  case OP_FREF:
-		  {
-		     // convert fref to gref combo
-		     if ( op == OP_PUSH_ARG )   op = OP_FREF_ARG;
-		     else if ( op == OP_APPLY )	op = OP_FREF_APPLY;
-		     else			op = OP_FREF_APPLYC;
-		     bv[ bv.size() - optab[prev_op].nbytes ] = op;
-		     break;
-		  }
-		  case OP_GET_ACCESS:
-		  {
-		     // convert get-access to get-access combo
-		     if ( op == OP_PUSH_ARG )	op = OP_GET_ACCESS_ARG;
-		     else if ( op == OP_APPLY )	op = OP_GET_ACCESS_APPLY;
-		     else			op = OP_GET_ACCESS_APPLYC;
-		     bv[ bv.size() - optab[prev_op].nbytes ] = op;
-		     break;
-		  }
-		  default:
-		     append_byte( bv, op );
-		     break;
-	       };
-	       break;
-#else
 	       append_byte( bv, op );
 	       break;
-#endif
 	    }
 
 	    case OP_EXTEND_ENV:
@@ -659,11 +573,6 @@ static SEXPR encode( SEXPR program )
 	       ERROR::severe( "assem: instruction not recognized/permitted", MEMORY::fixnum(op) );
 	       break;
 	 }
-
-#ifdef DO_COMBOS
-	 // fill pipe for peep
-	 prev_op = op;
-#endif
       }
 
       program = cdr(program);
@@ -834,27 +743,18 @@ static void decode( SEXPR code, int level=0 )
 	    break;
 	    
 	 case OP_ASSIGN_REG:   // op=17, [val,]reg
-	 case OP_ASSIGN_REG_ARG:
-	 case OP_ASSIGN_REG_APPLY:
-	 case OP_ASSIGN_REG_APPLYC:
             PIO::put( " [val,]" );
 	    print_reg( bv, index+1 );
             PIO::put( "\n" );
 	    break;
 
 	 case OP_ASSIGN_OBJ:   // op=18, [val,]value
-	 case OP_ASSIGN_OBJ_ARG:
-	 case OP_ASSIGN_OBJ_APPLY:
-	 case OP_ASSIGN_OBJ_APPLYC:
             PIO::put( " [val,]" );
 	    print_sexpr( sv, bv, index+1 );
             PIO::put( "\n" );
 	    break;
 	    
 	 case OP_GREF:         // op=19, [val,]sym
-	 case OP_GREF_ARG:
-	 case OP_GREF_APPLY:
-	 case OP_GREF_APPLYC:
             PIO::put( " [val,]" );
 	    print_sexpr( sv, bv, index+1 );
             PIO::put( "\n" );
@@ -868,9 +768,6 @@ static void decode( SEXPR code, int level=0 )
 	    break;
 	    
 	 case OP_FREF:         // op=21, [val],depth,index[,env]
-	 case OP_FREF_ARG:
-	 case OP_FREF_APPLY:
-	 case OP_FREF_APPLYC:
 	    PIO::put( " [val,]" );
 	    print_byte( bv, index+1 );
 	    PIO::put( "," );
@@ -887,9 +784,6 @@ static void decode( SEXPR code, int level=0 )
 	    break;
 	    
 	 case OP_GET_ACCESS:   // op=23, [val],sym,[val]
-	 case OP_GET_ACCESS_ARG:
-	 case OP_GET_ACCESS_APPLY:
-	 case OP_GET_ACCESS_APPLYC:
 	    PIO::put( " [val,]" );
 	    print_sexpr( sv, bv, index+1 );
 	    PIO::put( "\n" );

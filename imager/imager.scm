@@ -6,9 +6,11 @@
 ;;
 ;; How to use:
 ;;
+;;   [0] enter escheme in interpreter mode
+;;
 ;;   [1] load the compiler and imager:
-;;         > (load "./imager/imager.scm")
-;;         > (load "./compiler/compiler.scm")
+;;         ece> (load "./imager/imager.scm")
+;;         ece> (load "./compiler/compiler.scm")
 ;;  
 ;;   [2] dump the file of objects: 
 ;;         ece> (compiler-dump)
@@ -19,8 +21,8 @@
 ;;
 ;;   [3] When the core interpreter is started, one can load the compiler
 ;;       image as follows:
-;;         > (load ./imager/imager.scm")
-;;         > (compiler-load)
+;;         ece> (load "./imager/imager.scm")
+;;         ece> (compiler-load)
 ;;
 
 (define dumper-verbose #f)

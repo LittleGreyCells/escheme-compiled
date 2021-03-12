@@ -186,19 +186,6 @@ void EVAL::bceval()
 	    OP_ASSIGN_REG_CODE();
 	    break;
 
-	 case OP_ASSIGN_REG_ARG:
-	    OP_ASSIGN_REG_CODE();
-	    argstack.push( val ); 
-	    break;
-
-	 case OP_ASSIGN_REG_APPLY:
-	    OP_ASSIGN_REG_CODE();
-	    goto start_apply;
-
-	 case OP_ASSIGN_REG_APPLYC:
-	    OP_ASSIGN_REG_CODE();
-	    goto start_apply_cont;
-
 #define OP_ASSIGN_OBJ_CODE()\
 	    val = bcode.OBJECT( pc );\
 	    pc += 1;
@@ -206,19 +193,6 @@ void EVAL::bceval()
 	 case OP_ASSIGN_OBJ:
 	    OP_ASSIGN_OBJ_CODE();
 	    break;
-
-	 case OP_ASSIGN_OBJ_ARG:
-	    OP_ASSIGN_OBJ_CODE();
-	    argstack.push( val ); 
-	    break;
-
-	 case OP_ASSIGN_OBJ_APPLY:
-	    OP_ASSIGN_OBJ_CODE();
-	    goto start_apply;
-
-	 case OP_ASSIGN_OBJ_APPLYC:
-	    OP_ASSIGN_OBJ_CODE();
-	    goto start_apply_cont;
 
 #define OP_GREF_CODE()\
 	    {\
@@ -232,19 +206,6 @@ void EVAL::bceval()
 	 case OP_GREF:
 	    OP_GREF_CODE();
 	    break;
-
-	 case OP_GREF_ARG:
-	    OP_GREF_CODE();
-	    argstack.push( val ); 
-	    break;
-
-	 case OP_GREF_APPLY:
-	    OP_GREF_CODE();
-	    goto start_apply;
-
-	 case OP_GREF_APPLYC:
-	    OP_GREF_CODE();
-	    goto start_apply_cont;
 
 	 case OP_GSET:
 	 {
@@ -267,19 +228,6 @@ void EVAL::bceval()
 	    OP_FREF_CODE();
 	    break;
 
-	 case OP_FREF_ARG:
-	    OP_FREF_CODE();
-	    argstack.push( val ); 
-	    break;
-
-	 case OP_FREF_APPLY:
-	    OP_FREF_CODE();
-	    goto start_apply;
-
-	 case OP_FREF_APPLYC:
-	    OP_FREF_CODE();
-	    goto start_apply_cont;
-
 	 case OP_FSET:
 	 {
 	    TRACE( printf( "fset %d,%d\n", bcode[pc], bcode[pc+1] ) );
@@ -301,19 +249,6 @@ void EVAL::bceval()
 	 case OP_GET_ACCESS:
 	    OP_GET_ACCESS_CODE();
 	    break;
-
-	 case OP_GET_ACCESS_ARG:
-	    OP_GET_ACCESS_CODE();
-	    argstack.push( val ); 
-	    break;
-
-	 case OP_GET_ACCESS_APPLY:
-	    OP_GET_ACCESS_CODE();
-	    goto start_apply;
-
-	 case OP_GET_ACCESS_APPLYC:
-	    OP_GET_ACCESS_CODE();
-	    goto start_apply_cont;
 
 	 case OP_SET_ACCESS:
 	 {

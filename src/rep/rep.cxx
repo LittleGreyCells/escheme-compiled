@@ -22,6 +22,9 @@
 namespace escheme
 {
    
+extern int unix_argc;
+extern char** unix_argv;
+
 // symbol names for hanging sexprs
 const char* SYSTEM_REPLOOP = "*system-rep-loop*";
 const char* SYSTEM_LOADER  = "*system-loader*";
@@ -103,7 +106,16 @@ void rep_loop()
    try
    {
 #ifdef BYTE_CODE_EVALUATOR
-      IMAGER::image_load( system_path("compiler/compiler-image.scm") );
+      bool load_compiler = true;
+      if ( escheme::unix_argc > 1 )
+      {
+	 std::string arg1 = escheme::unix_argv[1];
+	 if ( arg1 == "-i" || arg1 == "--interpreter" )
+	    load_compiler = false;
+      }
+
+      if ( load_compiler )
+	 IMAGER::image_load( system_path("compiler/compiler-image.scm") );
 #endif
       define_system();
       

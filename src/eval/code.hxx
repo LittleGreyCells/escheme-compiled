@@ -74,30 +74,9 @@ enum OpCodes
    OP_DELAY,        // op=42, code(SVI) (2b)
    OP_FORCE_VALUE,  // op=43
 
-   // combos
+   OP_RTE,          // op=44, return to eceval, cont <- top(evs)
+   OP_RTC,          // op=45, return to c/c++ caller
 
-   OP_ASSIGN_REG_ARG,
-   OP_ASSIGN_OBJ_ARG,
-   OP_GREF_ARG,
-   OP_FREF_ARG,
-   OP_GET_ACCESS_ARG,
-
-   OP_ASSIGN_REG_APPLY,
-   OP_ASSIGN_OBJ_APPLY,
-   OP_GREF_APPLY,
-   OP_FREF_APPLY,
-   OP_GET_ACCESS_APPLY,
-
-   OP_ASSIGN_REG_APPLYC,
-   OP_ASSIGN_OBJ_APPLYC,
-   OP_GREF_APPLYC,
-   OP_FREF_APPLYC,
-   OP_GET_ACCESS_APPLYC,
-
-   // exits to caller
-
-   OP_RTE,          // return to eceval, cont <- top(evs)
-   OP_RTC           // return to c/c++ caller
 };
 
 enum REGISTERS
