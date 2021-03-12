@@ -178,34 +178,25 @@ void EVAL::bceval()
 	    argstack.removeargc(); 
 	    break;
 
-#define OP_ASSIGN_REG_CODE()\
-	    val = bcode.REGISTER( pc );\
-	    pc += 1;
-
 	 case OP_ASSIGN_REG:
-	    OP_ASSIGN_REG_CODE();
-	    break;
-
-#define OP_ASSIGN_OBJ_CODE()\
-	    val = bcode.OBJECT( pc );\
+	    val = bcode.REGISTER( pc );
 	    pc += 1;
+	    break;
 
 	 case OP_ASSIGN_OBJ:
-	    OP_ASSIGN_OBJ_CODE();
+	    val = bcode.OBJECT( pc );
+	    pc += 1;
 	    break;
-
-#define OP_GREF_CODE()\
-	    {\
-	       SEXPR sym = bcode.OBJECT( pc );\
-	       val = value( sym );\
-	       if (val == symbol_unbound)\
-		  ERROR::severe("symbol is unbound", sym);\
-	       pc += 1;\
-	    }
 
 	 case OP_GREF:
-	    OP_GREF_CODE();
+	 {
+	    SEXPR sym = bcode.OBJECT( pc );
+	    val = value( sym );
+	    if (val == symbol_unbound)
+	       ERROR::severe("symbol is unbound", sym);
+	    pc += 1;
 	    break;
+	 }
 
 	 case OP_GSET:
 	 {
@@ -214,19 +205,16 @@ void EVAL::bceval()
 	    break;
 	 }
 
-#define OP_FREF_CODE()\
-	 {\
-	    int d = bcode[pc];\
-	    SEXPR e = guard(env, envp);\
-	    while (d-- > 0)\
-	       e = guard(getenvbase(e), envp);\
-	    val = frameref( getenvframe(e), bcode[pc+1] );\
-	    pc += 2;\
-	 }
-
 	 case OP_FREF:
-	    OP_FREF_CODE();
+	 {
+	    int d = bcode[pc];
+	    SEXPR e = guard(env, envp);
+	    while (d-- > 0)
+	       e = guard(getenvbase(e), envp);
+	    val = frameref( getenvframe(e), bcode[pc+1] );
+	    pc += 2;\
 	    break;
+	 }
 
 	 case OP_FSET:
 	 {
@@ -242,12 +230,9 @@ void EVAL::bceval()
 	    break;
 	 }
 
-#define OP_GET_ACCESS_CODE()\
-            val = lookup( bcode.OBJECT( pc ), val );\
-            pc += 1;
-
 	 case OP_GET_ACCESS:
-	    OP_GET_ACCESS_CODE();
+            val = lookup( bcode.OBJECT( pc ), val );
+            pc += 1;
 	    break;
 
 	 case OP_SET_ACCESS:
