@@ -42,8 +42,10 @@ OBJS	= $(SRCS:.cxx=.o)
 
 #DEBUG_FLAGS = -g
 #DEBUG_FLAGS = -O
-DEBUG_FLAGS = -O2
+#DEBUG_FLAGS = -O2
 #DEBUG_FLAGS = -O3
+DEBUG_FLAGS = -Ofast
+
 
 #CFLAGS = $(DEBUG_FLAGS) -fno-operator-names -fpermissive -std=c++14
 #CFLAGS = $(DEBUG_FLAGS) -Wall -Wextra -std=c++14
@@ -52,7 +54,6 @@ CFLAGS = $(DEBUG_FLAGS) -pedantic -std=c++14
 LFLAGS = $(DEBUG_FLAGS) -v -lm
 
 DEFINES = 
-#DEFINES += -DDO_TRACEINT
 #DEFINES += -DGC_STATISTICS_DETAILED
 DEFINES += -DBYTE_CODE_EVALUATOR
 

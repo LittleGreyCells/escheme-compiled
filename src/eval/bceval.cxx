@@ -21,12 +21,6 @@ namespace escheme
 
 bool bce_trace_switch = true;
 
-#ifdef TRACEVM
-#define TRACE( code ) if (bce_trace_switch) { code; };
-#else
-#define TRACE( code )
-#endif
-
 enum EvalSexprRegisters
 {
    ER_VAL,
@@ -83,98 +77,79 @@ void EVAL::bceval()
    
    while ( true )
    {
-      TRACE( printf( "trace( pc=%d ): ", pc ) );
-
       const OpCodes op = (OpCodes)bcode[pc++];
 
       switch ( op )
       {
 	 case OP_SAVE_VAL:  
-	    TRACE( printf( "save-val\n" ) );
 	    save_reg( val ); 
 	    break;
 
 	 case OP_RESTORE_VAL:  
-	    TRACE( printf( "restore-val\n" ) );
 	    restore_reg( val ); 
 	    break;
 
 	 case OP_SAVE_AUX:  
-	    TRACE( printf( "save-aux\n" ) );
 	    save_reg( aux ); 
 	    break;
 
 	 case OP_RESTORE_AUX:  
-	    TRACE( printf( "restore-aux\n" ) );
 	    restore_reg( aux ); 
 	    break;
 
 	 case OP_SAVE_ENV:  
-	    TRACE( printf( "save-env\n" ) );
 	    if ( !(nullp(env) || envp(env)) )
 	       ERROR::severe( "save-env: not an environment", env );
 	    save_reg( env ); 
 	    break;
 
 	 case OP_RESTORE_ENV:  
-	    TRACE( printf( "restore-env\n" ) );
 	    restore_reg( env );
 	    if ( !(nullp(env) || envp(env)) )
 	       ERROR::severe( "restore-env: not an environment", env );
 	    break;
 
 	 case OP_SAVE_UNEV: 
-	    TRACE( printf( "save-unev\n" ) );
 	    save_reg( unev ); 
 	    break;
 
 	 case OP_RESTORE_UNEV: 
-	    TRACE( printf( "restore-unev\n" ) );
 	    restore_reg( unev ); 
 	    break;
 
 	 case OP_SAVE_EXP:  
-	    TRACE( printf( "save-exp\n" ) );
 	    save_reg( exp ); 
 	    break;
 
 	 case OP_RESTORE_EXP:  
-	    TRACE( printf( "restore-exp\n" ) );
 	    restore_reg( exp ); 
 	    break;
 
 	 case OP_SAVE_xxxx: 
-	    TRACE( printf( "save-xxxx\n" ) );
 	    save_evs( cont ); 
 	    break;
 
 	 case OP_RESTORE_xxxx: 
-	    TRACE( printf( "restore-xxxx\n" ) );
 	    restore_evs( cont ); 
 	    break;
 
 	 case OP_SAVE_ARGC: 
-	    TRACE( printf( "save-argc\n" ) );
 	    save_int( argstack.argc ); 
 	    break;
 
 	 case OP_RESTORE_ARGC: 
-	    TRACE( printf( "restore-argc\n" ) );
 	    restore_int( argstack.argc ); 
 	    break;
 
 	 case OP_ZERO_ARGC: 
-	    TRACE( printf( "zero-argc\n" ) );
 	    argstack.argc = 0; 
 	    break;
 
 	 case OP_PUSH_ARG:  
-	    TRACE( printf( "push-arg\n" ) );
 	    argstack.push( val ); 
 	    break;
 
 	 case OP_POP_ARGS:  
-	    TRACE( printf( "pop-args\n" ) );
 	    argstack.removeargc(); 
 	    break;
 
@@ -218,7 +193,6 @@ void EVAL::bceval()
 
 	 case OP_FSET:
 	 {
-	    TRACE( printf( "fset %d,%d\n", bcode[pc], bcode[pc+1] ) );
 	    // op, env-depth, frame-index, [val], [env]
 	    //     +0         +1 
 	    int d = bcode[pc];
@@ -237,7 +211,6 @@ void EVAL::bceval()
 
 	 case OP_SET_ACCESS:
 	 {
-	    TRACE( printf( "set-access obj[%d]\n", bcode[pc] ) );
 	    // op, [val], sym(SVI), [val], [exp/env2]
 	    //            +0
 	    set_variable_value( bcode.OBJECT( pc ), val, exp );
@@ -247,7 +220,6 @@ void EVAL::bceval()
 
 	 case OP_LAMBDA:
 	 {
-	    TRACE( printf( "make-closure obj[%d]\n", bcode[pc] ) );
 	    // op, [val], bcode(CVI), params(CVI), num, rest, [env]
 	    //            +0          +1           +2   +3
 	    val = MEMORY::closure( bcode.OBJECT( pc ), env );
@@ -260,7 +232,6 @@ void EVAL::bceval()
 
 	 case OP_DELAY:
 	 {
-	    TRACE( printf( "make-delay obj[%d]\n", bcode[pc] ) );
 	    // op, [val], bcode(CVI)
 	    //            +0 
 	    val = MEMORY::promise( bcode.OBJECT( pc ) );
@@ -272,7 +243,6 @@ void EVAL::bceval()
 
 	 case OP_MAP_INIT:
 	 {
-	    TRACE( printf( "map-init\n" ) );
 	    if ( argstack.argc < 2 )
 	       ERROR::severe( "map requires two or more arguments" );   
 	    save_int( argstack.argc );
@@ -282,7 +252,6 @@ void EVAL::bceval()
 
 	 case OP_MAP_APPLY:
 	 {
-	    TRACE( printf( "map-apply\n" ) );
 	    if ( nullp(argstack.top()) )
 	    {
 	       // done
@@ -313,7 +282,6 @@ void EVAL::bceval()
 
 	 case OP_MAP_RESULT:
 	 {
-	    TRACE( printf( "map-result\n" ) );
 	    // result is in regstack[top]
 	    SEXPR x = MEMORY::cons(val, null);
 	    const int top = regstack.gettop();
@@ -339,7 +307,6 @@ void EVAL::bceval()
 
 	 case OP_FOR_INIT:
 	 {
-	    TRACE( printf( "for-init\n" ) );
 	    if (argstack.argc < 2)
 	       ERROR::severe( "for-each requires two or more arguments" );
 	    save_int( argstack.argc );
@@ -349,7 +316,6 @@ void EVAL::bceval()
 
 	 case OP_FOR_APPLY:
 	 {
-	    TRACE( printf( "for-apply\n" ) );
 	    if ( nullp(argstack.top()) )
 	    {
 	       // done
@@ -379,7 +345,6 @@ void EVAL::bceval()
 
 	 case OP_FOR_RESULT:
 	 {
-	    TRACE( printf( "for-result\n" ) );
 	    // result is in regstack[top]
 	    pc -= 3;
 	    // pc -> OP_FOR_APPLY
@@ -399,14 +364,12 @@ void EVAL::bceval()
 
 	    if ( _funcp(val) )
 	    {
-	       TRACE( printf( "apply {prim [%s]}\n", FUNTAB::funname(getprimfunc(val)) ) );
 	       val = getprimfunc(val)();
 	       argstack.removeargc();
 	       break;
 	    }
 	    else
 	    {
-	       TRACE( printf( "[push-cont] " ) );
 	       // prepare the return
 	       SAVE_BCE_REGISTERS();
 	       // fallthru
@@ -424,7 +387,6 @@ void EVAL::bceval()
 	    {
 	       case n_func:
 	       {
-		  TRACE( printf( "apply {prim [%s]}\n", FUNTAB::funname(getprimfunc(val)) ) );
 		  // call the primitive directly
 		  val = getprimfunc(val)();        // was getfunc(fun)
 		  argstack.removeargc();
@@ -434,7 +396,6 @@ void EVAL::bceval()
 
 	       case n_closure:
 	       {
-		  TRACE( printf( "apply {closure: %p}\n", val ) );	
 		  env = extend_env_fun(val);
 		  unev = getclosurecode(val);
 		  if ( _codep(unev) )
@@ -452,7 +413,6 @@ void EVAL::bceval()
 
 	       case n_apply:
 	       {
-		  TRACE( printf( "apply {apply}\n" ) );
 		  ArgstackIterator iter;
 		  val = iter.getarg();
 		  SEXPR args = guard(iter.getlast(), listp);
@@ -464,7 +424,6 @@ void EVAL::bceval()
 
 	       case n_eval:
 	       {
-		  TRACE( printf( "apply {eval}\n" ) );
 		  ArgstackIterator iter;
 		  exp = iter.getarg();
 		  if ( iter.more() )
@@ -497,7 +456,6 @@ void EVAL::bceval()
 
 	       case n_callcc:
 	       {
-		  TRACE( printf( "apply {callcc}\n" ) );
 		  ArgstackIterator iter;
 		  val = guard(iter.getlast(), closurep);
 		  argstack.removeargc();
@@ -508,7 +466,6 @@ void EVAL::bceval()
 
 	       case n_continuation:
 	       {
-		  TRACE( printf( "apply {continuation: %p}\n", val ) );
 		  ArgstackIterator iter;
 		  SEXPR ccresult = iter.more() ? iter.getlast() : null;
 		  argstack.removeargc();
@@ -531,7 +488,6 @@ void EVAL::bceval()
 
 	       case n_map:
 	       {
-		  TRACE( printf( "apply {map}\n" ) );
 		  unev = map_code;
 		  pc = 0;
 		  goto start_bceval;
@@ -539,7 +495,6 @@ void EVAL::bceval()
 
 	       case n_foreach:
 	       {
-		  TRACE( printf( "apply {foreach}\n" ) );
 		  unev = for_code;
 		  pc = 0;
 		  goto start_bceval;
@@ -547,7 +502,6 @@ void EVAL::bceval()
 
 	       case n_force:
 	       {
-		  TRACE( printf( "apply {force}\n" ) );
 		  ArgstackIterator iter;
 		  SEXPR promise = guard(iter.getlast(), promisep);
 		  argstack.removeargc();
@@ -583,7 +537,6 @@ void EVAL::bceval()
 
 	 case OP_FORCE_VALUE:
 	 {
-	    TRACE( printf( "force-value\n" ) );
 	    // cache and return the forced value
 	    // result is in val
 	    // promise is on regstack.top()
@@ -595,7 +548,6 @@ void EVAL::bceval()
 
 	 case OP_TEST_TRUE:
 	 {
-	    TRACE( printf( "test-true\n" ) );
 	    // op, [result], [val]
 	    testresult = truep(val);
 	    break;
@@ -603,7 +555,6 @@ void EVAL::bceval()
 
 	 case OP_TEST_FALSE:
 	 {
-	    TRACE( printf( "test-false\n" ) );
 	    // op, [result], [val]
 	    testresult = falsep(val);
 	    break;
@@ -611,7 +562,6 @@ void EVAL::bceval()
 
 	 case OP_BRANCH:
 	 {
-	    TRACE( printf( "branch %d\n", bcode.GET16(pc) ) );
 	    // op, bcode-index
 	    //         +0
 	    if ( testresult )
@@ -623,7 +573,6 @@ void EVAL::bceval()
 
 	 case OP_GOTO:
 	 {
-	    TRACE( printf( "goto %d\n", bcode.GET16(pc) ) );
 	    // op, bcode-index
 	    //         +0
 	    pc = bcode.GET16(pc);
@@ -632,7 +581,6 @@ void EVAL::bceval()
 
 	 case OP_BRANCH_CONT:
 	 {
-	    TRACE( printf( "branch-cont %d\n", cont ) );
 	    // op
 	    if ( testresult )
 	    {
@@ -644,7 +592,6 @@ void EVAL::bceval()
 
 	 case OP_GOTO_CONT:
 	 {
-	    TRACE( printf( "goto-cont %d\n", cont ) );
 	    // op
 	    RESTORE_BCE_REGISTERS();
 	    goto start_bceval;
@@ -652,7 +599,6 @@ void EVAL::bceval()
 
 	 case OP_EXTEND_ENV:
 	 {
-	    TRACE( printf( "extend-env\n" ) );
 	    // op, reg, nvars, vars(SVI), [env] (4b)
 	    //     +0   +1     +2
 	    bcode.REGISTER( pc ) = MEMORY::environment( bcode[pc+1], bcode.OBJECT( pc+2 ), env );
@@ -662,7 +608,6 @@ void EVAL::bceval()
 
 	 case OP_ESET:
 	 {
-	    TRACE( printf( "eset\n" ) );
 	    // op, index, [val]                 (2b)
 	    //     +0
 	    SEXPR e = guard( regstack.top(), envp );
@@ -677,7 +622,6 @@ void EVAL::bceval()
 
 	 case OP_RTE:
 	 {
-	    TRACE( printf( "rte\n" ) );
 	    // op
 	    restore_evs(cont);
 	    next = cont;
@@ -686,7 +630,6 @@ void EVAL::bceval()
 	 
 	 case OP_RTC:
 	 {
-	    TRACE( printf( "rtc\n" ) );
 	    // op
 	    return;
 	 }

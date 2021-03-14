@@ -7,12 +7,6 @@
 namespace escheme
 {
 
-#ifdef DO_TRACEINT
-#define TRACE( code ) code;
-#else
-#define TRACE( code )
-#endif
-
 static int frameindex = 0;
 
 SEXPR EVAL::eceval( SEXPR sexpr )
@@ -41,13 +35,11 @@ SEXPR EVAL::eceval( SEXPR sexpr )
       switch ( next )
       {
 	 case EVAL_RETURN:
-	    TRACE( printf( "ece:eval-return\n" ) );
 	    RESTORE_BCE_REGISTERS();
 	    bceval();
 	    break;
 
 	 case EVAL_CODE:
-	    TRACE( printf( "ece:eval-code\n" ) );
 	    bceval();
 	    break;
 
