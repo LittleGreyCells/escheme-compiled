@@ -114,12 +114,13 @@ namespace EVAL
    void restore_continuation( SEXPR continuation );
 }
 
-inline void save_evs( EVSTATE x )  { intstack.push(int(x)); }
-inline void save_int( int x )  { intstack.push(x); }
-inline void save_reg( SEXPR x ) { regstack.push(x); }
-inline void restore_evs( EVSTATE& x ) { x = EVSTATE( intstack.pop() ); }
-inline void restore_int( int& x ) { x = intstack.pop(); }
-inline void restore_reg( SEXPR& x ) { x = regstack.pop(); }
+inline void save( EVSTATE x )  { intstack.push(int(x)); }
+inline void save( int x )  { intstack.push(x); }
+inline void save( SEXPR x ) { regstack.push(x); }
+   
+inline void restore( EVSTATE& x ) { x = EVSTATE( intstack.pop() ); }
+inline void restore( int& x ) { x = intstack.pop(); }
+inline void restore( SEXPR& x ) { x = regstack.pop(); }
 
 //
 // Save and Restore the Byte Code Evaluator Registers
@@ -127,30 +128,30 @@ inline void restore_reg( SEXPR& x ) { x = regstack.pop(); }
 
 inline void SAVE_BCE_REGISTERS()
 {
-   save_reg( EVAL::env );
-   save_reg( EVAL::unev );
-   save_int( EVAL::pc );
+   save( EVAL::env );
+   save( EVAL::unev );
+   save( EVAL::pc );
 }
 
 inline void RESTORE_BCE_REGISTERS()
 {
-   restore_int( EVAL::pc );
-   restore_reg( EVAL::unev );
-   restore_reg( EVAL::env );
+   restore( EVAL::pc );
+   restore( EVAL::unev );
+   restore( EVAL::env );
 }
 
 inline void SAVE_RTE()
 {
-   save_reg( EVAL::env );
-   save_reg( EVAL::rte_code );
-   save_int( 0 );
+   save( EVAL::env );
+   save( EVAL::rte_code );
+   save( 0 );
 }
 
 inline void SAVE_RTC()
 {
-   save_reg( EVAL::env );
-   save_reg( EVAL::rtc_code );
-   save_int( 0 );
+   save( EVAL::env );
+   save( EVAL::rtc_code );
+   save( 0 );
 }
 
 }

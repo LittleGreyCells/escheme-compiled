@@ -82,63 +82,63 @@ void EVAL::bceval()
       switch ( op )
       {
 	 case OP_SAVE_VAL:  
-	    save_reg( val ); 
+	    save( val ); 
 	    break;
 
 	 case OP_RESTORE_VAL:  
-	    restore_reg( val ); 
+	    restore( val ); 
 	    break;
 
 	 case OP_SAVE_AUX:  
-	    save_reg( aux ); 
+	    save( aux ); 
 	    break;
 
 	 case OP_RESTORE_AUX:  
-	    restore_reg( aux ); 
+	    restore( aux ); 
 	    break;
 
 	 case OP_SAVE_ENV:  
 	    if ( !(nullp(env) || envp(env)) )
 	       ERROR::severe( "save-env: not an environment", env );
-	    save_reg( env ); 
+	    save( env ); 
 	    break;
 
 	 case OP_RESTORE_ENV:  
-	    restore_reg( env );
+	    restore( env );
 	    if ( !(nullp(env) || envp(env)) )
 	       ERROR::severe( "restore-env: not an environment", env );
 	    break;
 
 	 case OP_SAVE_UNEV: 
-	    save_reg( unev ); 
+	    save( unev ); 
 	    break;
 
 	 case OP_RESTORE_UNEV: 
-	    restore_reg( unev ); 
+	    restore( unev ); 
 	    break;
 
 	 case OP_SAVE_EXP:  
-	    save_reg( exp ); 
+	    save( exp ); 
 	    break;
 
 	 case OP_RESTORE_EXP:  
-	    restore_reg( exp ); 
+	    restore( exp ); 
 	    break;
 
 	 case OP_SAVE_xxxx: 
-	    save_evs( cont ); 
+	    save( cont ); 
 	    break;
 
 	 case OP_RESTORE_xxxx: 
-	    restore_evs( cont ); 
+	    restore( cont ); 
 	    break;
 
 	 case OP_SAVE_ARGC: 
-	    save_int( argstack.argc ); 
+	    save( argstack.argc ); 
 	    break;
 
 	 case OP_RESTORE_ARGC: 
-	    restore_int( argstack.argc ); 
+	    restore( argstack.argc ); 
 	    break;
 
 	 case OP_ZERO_ARGC: 
@@ -245,8 +245,8 @@ void EVAL::bceval()
 	 {
 	    if ( argstack.argc < 2 )
 	       ERROR::severe( "map requires two or more arguments" );   
-	    save_int( argstack.argc );
-	    save_reg( MEMORY::cons(null, null) );    // val == (())
+	    save( argstack.argc );
+	    save( MEMORY::cons(null, null) );    // val == (())
 	    break;
 	 }
 
@@ -255,9 +255,9 @@ void EVAL::bceval()
 	    if ( nullp(argstack.top()) )
 	    {
 	       // done
-	       restore_reg( val );            // val == (<list> . <last>)
+	       restore( val );            // val == (<list> . <last>)
 	       val = car(val);                // val == <list>
-	       restore_int( argstack.argc );
+	       restore( argstack.argc );
 	       argstack.removeargc();
 	       pc += 2;
 	       // pc -> OP_GOTO_CONT
@@ -309,8 +309,8 @@ void EVAL::bceval()
 	 {
 	    if (argstack.argc < 2)
 	       ERROR::severe( "for-each requires two or more arguments" );
-	    save_int( argstack.argc );
-	    save_reg( null );               // val == ()
+	    save( argstack.argc );
+	    save( null );               // val == ()
 	    break;
 	 }
 
@@ -319,8 +319,8 @@ void EVAL::bceval()
 	    if ( nullp(argstack.top()) )
 	    {
 	       // done
-	       restore_reg( val );         // val == ()
-	       restore_int( argstack.argc );
+	       restore( val );         // val == ()
+	       restore( argstack.argc );
 	       argstack.removeargc();
 	       pc += 2;
 	       // pc -> OP_GOTO_CONT
@@ -405,7 +405,7 @@ void EVAL::bceval()
 		  }
 		  else
 		  {
-		     save_evs( EVAL_RETURN );
+		     save( EVAL_RETURN );
 		     next = EVAL_SEQUENCE;
 		     return;
 		  }
@@ -480,7 +480,7 @@ void EVAL::bceval()
 		  }
 		  else
 		  {
-		     restore_evs( cont );
+		     restore( cont );
 		     next = cont;
 		     return;
 		  }
@@ -515,7 +515,7 @@ void EVAL::bceval()
 		  else
 		  {
 		     // force the evaluation of the promise...
-		     save_reg( promise );
+		     save( promise );
 		     unev = fep_code;
 		     pc = 0;
 		     SAVE_BCE_REGISTERS();
@@ -623,7 +623,7 @@ void EVAL::bceval()
 	 case OP_RTE:
 	 {
 	    // op
-	    restore_evs(cont);
+	    restore(cont);
 	    next = cont;
 	    return;
 	 }
