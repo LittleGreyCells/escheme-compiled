@@ -651,6 +651,35 @@
         ))
   )
 
+;;
+;; some intense timing tests
+;;
+
+(define (fact-stress n)
+  (letrec ((fact (lambda (n)
+		   (if (<= n 1)
+		       1
+		       (* n (fact (- n 1)))))))
+    (display "starting fact-stress")
+    (newline)
+    (while (> n 0)
+	   (map fact (list 1 2 3 4 5 6 7 8 9 10))
+	   (set! n (- n 1)))
+    (display "leaving fact-stress")
+    (newline)))
+
+(if #f
+    (begin
+      ;; compiled -- 205751154 (59%)
+      ;; interp'd -- 347539495
+      (time-it (lambda () (fact-stress 10000)))
+      
+      ;; compiled -- 1406828116 (54%)
+      ;; interp'd -- 2579902247
+      (time-it (lambda () (fact-stress 100000)))
+      ))
+
+
 ;; [EOF]
 
 
