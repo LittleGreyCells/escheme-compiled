@@ -743,19 +743,19 @@ static void decode( SEXPR code, int level=0 )
 	    break;
 	    
 	 case OP_ASSIGN_REG:   // op=17, [val,]reg
-            PIO::put( " [val,]" );
+            PIO::put( " " );
 	    print_reg( bv, index+1 );
             PIO::put( "\n" );
 	    break;
 
 	 case OP_ASSIGN_OBJ:   // op=18, [val,]value
-            PIO::put( " [val,]" );
+            PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
             PIO::put( "\n" );
 	    break;
 	    
 	 case OP_GREF:         // op=19, [val,]sym
-            PIO::put( " [val,]" );
+            PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
             PIO::put( "\n" );
 	    break;
@@ -763,12 +763,11 @@ static void decode( SEXPR code, int level=0 )
 	 case OP_GSET:         // op=20, sym[,val]
             PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
-            PIO::put( "[,val]" );
             PIO::put( "\n" );
 	    break;
 	    
 	 case OP_FREF:         // op=21, [val],depth,index[,env]
-	    PIO::put( " [val,]" );
+	    PIO::put( " " );
 	    print_byte( bv, index+1 );
 	    PIO::put( "," );
 	    print_byte( bv, index+2 );
@@ -784,21 +783,20 @@ static void decode( SEXPR code, int level=0 )
 	    break;
 	    
 	 case OP_GET_ACCESS:   // op=23, [val],sym,[val]
-	    PIO::put( " [val,]" );
+	    PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
 	    PIO::put( "\n" );
 	    break;
 
 	 case OP_SET_ACCESS:   // op=24, [val,]sym[,val][,exp/env]
-	    PIO::put( " [val,]" );
+	    PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
 	    PIO::put( " " );
-	    PIO::put( "[,exp]" );
 	    PIO::put( "\n" );
 	    break;
 	 
 	 case OP_LAMBDA:       // op=25, [val,]bcode,params,num,rest[,env]
-	    PIO::put( " [val,]" );
+	    PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
 	    PIO::put( "," );
 	    print_sexpr( sv, bv, index+2 );
@@ -814,7 +812,7 @@ static void decode( SEXPR code, int level=0 )
 	    break;
 	    	    
 	 case OP_DELAY:       // op=42, [val,]bcode
-	    PIO::put( " [val,]" );
+	    PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
 	    PIO::put( "\n" );
 	    {
@@ -848,7 +846,6 @@ static void decode( SEXPR code, int level=0 )
 	 case OP_ESET:        // op=41, index
 	    PIO::put( " " );
 	    print_byte( bv, index+1 );
-	    PIO::put( "[,val]" );
 	    PIO::put( "\n" );
 	    break;
 	    	    

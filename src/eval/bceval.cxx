@@ -10,6 +10,9 @@
 #include "core/funtab.hxx"
 #include "core/symtab.hxx"
 
+#define BCE_CHECK
+#undef BCE_CHECK
+
 namespace escheme
 {
 
@@ -49,15 +52,16 @@ SEXPR* regs[] =
 
 class BCODE
 {
-   SEXPR* sv;
-   BYTE* bv;
+   const SEXPR* sv;
+   const BYTE* bv;
 public:
-   BCODE( SEXPR code )
+   BCODE( SEXPR code ) :
+      sv( getvectordata(code_getsexprs(code) ) ),
+      bv( getbvecdata(code_getbcodes(code)) )
    {
-      sv = getvectordata(code_getsexprs(code));
-      bv = getbvecdata(code_getbcodes(code));
+      // empty
    }
-   BYTE operator[]( int index ) const { return bv[index]; }
+   auto operator[]( int index ) const { return bv[index]; }
    auto& REGISTER( int index ) const { return *regs[bv[index]]; }
    auto OBJECT( int index ) const { return sv[bv[index]]; }
    auto GET16( int index ) const { return bv[index] + (bv[index+1] << 8); }
@@ -73,7 +77,11 @@ void EVAL::bceval()
 
    bool testresult = false;
 
+#ifdef BCE_CHECK
    const BCODE bcode( guard(unev, codep) );
+#else
+   const BCODE bcode( unev );
+#endif
    
    while ( true )
    {
@@ -98,15 +106,19 @@ void EVAL::bceval()
 	    break;
 
 	 case OP_SAVE_ENV:  
+#ifdef BCE_CHECK
 	    if ( !(nullp(env) || envp(env)) )
 	       ERROR::severe( "save-env: not an environment", env );
+#endif
 	    save( env ); 
 	    break;
 
 	 case OP_RESTORE_ENV:  
 	    restore( env );
+#ifdef BCE_CHECK
 	    if ( !(nullp(env) || envp(env)) )
 	       ERROR::severe( "restore-env: not an environment", env );
+#endif
 	    break;
 
 	 case OP_SAVE_UNEV: 
@@ -167,7 +179,7 @@ void EVAL::bceval()
 	 {
 	    SEXPR sym = bcode.OBJECT( pc );
 	    val = value( sym );
-	    if (val == symbol_unbound)
+	    if ( val == symbol_unbound )
 	       ERROR::severe("symbol is unbound", sym);
 	    pc += 1;
 	    break;
@@ -183,9 +195,17 @@ void EVAL::bceval()
 	 case OP_FREF:
 	 {
 	    int d = bcode[pc];
+#ifdef BCE_CHECK
 	    SEXPR e = guard(env, envp);
+#else
+	    SEXPR e = env;
+#endif
 	    while (d-- > 0)
+#ifdef BCE_CHECK
 	       e = guard(getenvbase(e), envp);
+#else
+	       e = getenvbase(e);
+#endif
 	    val = frameref( getenvframe(e), bcode[pc+1] );
 	    pc += 2;\
 	    break;
@@ -196,9 +216,17 @@ void EVAL::bceval()
 	    // op, env-depth, frame-index, [val], [env]
 	    //     +0         +1 
 	    int d = bcode[pc];
+#ifdef BCE_CHECK
 	    SEXPR e = guard(env, envp);
+#else
+	    SEXPR e = env;
+#endif
 	    while (d-- > 0)
+#ifdef BCE_CHECK
 	       e = guard(getenvbase(e), envp);
+#else
+	       e = getenvbase(e);
+#endif
 	    frameset( getenvframe(e), bcode[pc+1], val );
 	    pc += 2;
 	    break;
@@ -307,7 +335,7 @@ void EVAL::bceval()
 
 	 case OP_FOR_INIT:
 	 {
-	    if (argstack.argc < 2)
+	    if ( argstack.argc < 2 )
 	       ERROR::severe( "for-each requires two or more arguments" );
 	    save( argstack.argc );
 	    save( null );               // val == ()
@@ -415,7 +443,11 @@ void EVAL::bceval()
 	       {
 		  ArgstackIterator iter;
 		  val = iter.getarg();
+#ifdef BCE_CHECK
 		  SEXPR args = guard(iter.getlast(), listp);
+#else
+		  SEXPR args = iter.getlast();
+#endif
 		  argstack.removeargc();
 		  for (; anyp(args); args = cdr(args))
 		     argstack.push(car(args));
@@ -457,7 +489,11 @@ void EVAL::bceval()
 	       case n_callcc:
 	       {
 		  ArgstackIterator iter;
+#ifdef BCE_CHECK
 		  val = guard(iter.getlast(), closurep);
+#else
+		  val = iter.getlast();
+#endif
 		  argstack.removeargc();
 		  // create and pass the continuation to the argument function
 		  argstack.push( create_continuation() );
@@ -610,12 +646,20 @@ void EVAL::bceval()
 	 {
 	    // op, index, [val]                 (2b)
 	    //     +0
+#ifdef BCE_CHECK
 	    SEXPR e = guard( regstack.top(), envp );
+#else
+	    SEXPR e = regstack.top();
+#endif
 	    const unsigned index = bcode[pc];
+#ifdef BCE_CHECK
 	    if ( index < getframenslots(getenvframe(e)) )
 	       frameset( getenvframe(e), index, val );
 	    else
 	       ERROR::severe( "eset: index out of bounds", e, MEMORY::fixnum(index) );
+#else
+	    frameset( getenvframe(e), index, val );
+#endif
 	    pc += 1;
 	    break;
 	 }
