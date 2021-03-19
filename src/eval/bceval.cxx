@@ -416,7 +416,7 @@ void EVAL::bceval()
 	       case n_func:
 	       {
 		  // call the primitive directly
-		  val = getprimfunc(val)();        // was getfunc(fun)
+		  val = getprimfunc(val)();
 		  argstack.removeargc();
 		  RESTORE_BCE_REGISTERS();
 		  goto start_bceval;
