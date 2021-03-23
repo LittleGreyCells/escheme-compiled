@@ -844,66 +844,6 @@
 
 (define (ec:last-exp? exp) (null? (cdr exp)))
 
-;;
-;; cond->if
-;;
-(define (ec:cond->if exp)
-  (ec:expand-clauses (ec:cond-clauses exp)))
-
-(define (ec:expand-clauses clauses)
-  (if (null? clauses)
-      #f
-    (let ((first (ec:first-exp clauses))
-          (rest (ec:rest-exps clauses)))
-      (if (ec:cond-else-clause? first)
-          (if (null? rest)
-              (ec:sequence->exp (ec:cond-actions first))
-	      (error "else clause isn't last -- cond->if" clauses))
-	  (ec:make-if (ec:cond-predicate first)
-		      (ec:sequence->exp (ec:cond-actions first))
-		      (ec:expand-clauses rest))))))
-
-(define (ec:make-if predicate consequent alternative)
-  (list 'if predicate consequent alternative))
-
-(define (ec:cond-clauses exp) (cdr exp))
-
-(define (ec:cond-else-clause? clause)
-  (eq? (ec:cond-predicate clause) 'else))
-
-(define (ec:cond-predicate clause) (car clause))
-(define (ec:cond-actions clause) (cdr clause))
-
-(define (ec:sequence->exp exp)
-  (cond ((null? exp) exp)
-        ((ec:last-exp? exp) (ec:first-exp exp))
-        (else (ec:make-begin exp))))
-
-(define (ec:make-begin exp) 
-  (cons 'begin exp))
-
-(define (ec:last-exp? exp) (null? (cdr exp)))
-(define (ec:first-exp exp) (car exp))
-(define (ec:rest-exps exp) (cdr exp))
-
-;;
-;; ec:while->letrec
-;;
-;;   (while <condition> <body>) -->
-;;
-;;      (letrec ((%%while (lambda () (if <condition> (begin ,<body> (%%while)))))) (%%while))
-;;
-
-(define (ec:while->letrec exp)
-  (let ((<condition> (cadr exp))
-	(<body> (cddr exp))
-	(<while> (ec:make-label '%%w)))
-    (list 'letrec (list (list <while> 
-			      (list 'lambda '() (list 
-						 'if <condition> 
-						 (cons 'begin (append <body> (list (list <while>))))))))
-	  (list <while>))
-    ))
 
 ;;
 ;; Nested Defines
