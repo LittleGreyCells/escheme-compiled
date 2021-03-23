@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;;               S I C P - B a s e d   C o m p i l e r
+;;               E s c h e m e   C o m p i l e r
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -239,16 +239,16 @@
 	 (index 0)
 	 code)
      (while (and (not code) bindings)
-       (if (eq? sym (caar bindings))
-	   (begin
-	    (set! code (cons depth index)))
-	 (begin
-	  (set! index (1+ index))
-	  (set! bindings (cdr bindings))))
-       )
+	(if (eq? sym (caar bindings))
+	    (begin
+	      (set! code (cons depth index)))
+	    (begin
+	      (set! index (1+ index))
+	      (set! bindings (cdr bindings))))
+	)
      (if (not code)
 	 (ec:lookup-symbol sym (environment-parent env) (1+ depth))
-       code)
+	 code)
      )))
 
 ;;
@@ -315,51 +315,51 @@
 	  (ec:end-with-linkage
 	   linkage
 	   nil)
-	(ec:append-ins-sequences 
-	 <clauses>
-	 (if (eq? linkage 'next)
-	     end-label
-	   nil))
-	))))
+	  (ec:append-ins-sequences 
+	   <clauses>
+	   (if (eq? linkage 'next)
+	       end-label
+	       nil))
+	  ))))
 
 (define (ec:compile-cond-clauses exp env target linkage end-label)
   ;;(ec:trace "ec:compile-cond-clauses:" exp env target linkage)
   (if (null? exp)
       nil
-    (ec:append-ins-sequences 
-     (ec:compile-cond-clause (car exp) env target linkage end-label (ec:last-exp? exp))
-     (ec:compile-cond-clauses (cdr exp) env target linkage end-label))
-    ))
+      (ec:append-ins-sequences 
+       (ec:compile-cond-clause (car exp) env target linkage end-label (ec:last-exp? exp))
+       (ec:compile-cond-clauses (cdr exp) env target linkage end-label))
+      ))
 
 (define (ec:compile-cond-clause exp env target linkage end-label last)
   ;;(ec:trace "ec:compile-cond-clause:" exp env target linkage)
   (if (eq? (car exp) 'else)
       (ec:compile-list (cdr exp) env target linkage)
-    (let ((<test> (ec:compile (car exp) env 'val 'next))
-	  (<body> (ec:compile-list (cdr exp) env 'val linkage))
-	  (false-label (ec:make-label2 'false-branch)))
-      (ec:append-ins-sequences
-        <test>
-	;; test and branch code
-	;;   if last and linkage is return, branch cont
-	;;   if last and linkage is next, branch label
-	;;   if not last and linkage is return, branch label
-	;;   if not last and linkage is next, branch label
-	(ec:make-ins-sequence '(val) '() (append (ec:make-test-false)
-						 (if (and last (eq? linkage 'return))
-						     (ec:make-branch-cont)
-						   (ec:make-branch false-label))))
-	<body>
-	;; we are done
-	;;   if last and linkage is next, nil (goto end is unnecessary)
-	;;   if not last and linkage is next, goto end
-	(if (eq? linkage 'next)
-	    (if last
-		nil
-	      (ec:make-ins-sequence '() '() (ec:make-goto end-label))))
-
-	false-label
-	))))
+      (let ((<test> (ec:compile (car exp) env 'val 'next))
+	    (<body> (ec:compile-list (cdr exp) env 'val linkage))
+	    (false-label (ec:make-label2 'false-branch)))
+	(ec:append-ins-sequences
+	 <test>
+	 ;; test and branch code
+	 ;;   if last and linkage is return, branch cont
+	 ;;   if last and linkage is next, branch label
+	 ;;   if not last and linkage is return, branch label
+	 ;;   if not last and linkage is next, branch label
+	 (ec:make-ins-sequence '(val) '() (append (ec:make-test-false)
+						  (if (and last (eq? linkage 'return))
+						      (ec:make-branch-cont)
+						      (ec:make-branch false-label))))
+	 <body>
+	 ;; we are done
+	 ;;   if last and linkage is next, nil (goto end is unnecessary)
+	 ;;   if not last and linkage is next, goto end
+	 (if (eq? linkage 'next)
+	     (if last
+		 nil
+		 (ec:make-ins-sequence '() '() (ec:make-goto end-label))))
+	 
+	 false-label
+	 ))))
 
 ;;
 ;; WHILE
@@ -372,18 +372,18 @@
 	  (<body> (ec:compile-list (cddr exp) env target 'next)))
 
       (ec:append-ins-sequences
-	cond-label
-	<condition>
+       cond-label
+       <condition>
 
-	(ec:make-ins-sequence '(val) '() (append (ec:make-test-false)
-						 (if (eq? linkage 'return)
-						     (ec:make-branch-cont)
-						   (ec:make-branch end-label))))
-	<body>
+       (ec:make-ins-sequence '(val) '() (append (ec:make-test-false)
+						(if (eq? linkage 'return)
+						    (ec:make-branch-cont)
+						    (ec:make-branch end-label))))
+       <body>
 
-	(ec:make-ins-sequence '() '() (ec:make-goto cond-label))
-	end-label
-	)
+       (ec:make-ins-sequence '() '() (ec:make-goto cond-label))
+       end-label
+       )
       )))
 
 ;;
@@ -465,23 +465,23 @@
 (define (ec:get-let-vars <bindings>)
   (if (null? <bindings>)
       nil
-    (let ((x (car <bindings>)))
-      (if (pair? x)
-	  (cons (car x) (ec:get-let-vars (cdr <bindings>)))
-	(cons x (ec:get-let-vars (cdr <bindings>)))))))
+      (let ((x (car <bindings>)))
+	(if (pair? x)
+	    (cons (car x) (ec:get-let-vars (cdr <bindings>)))
+	    (cons x (ec:get-let-vars (cdr <bindings>)))))))
 
 (define (ec:compile-let-bindings <bindings> env index)
   ;;(ec:trace "compile-let-bindings" <bindings> env index)
   (if (null? <bindings>)
       nil
-    (ec:append-ins-sequences 
-     (ec:compile-let-binding (car <bindings>) env index)
-     (ec:compile-let-bindings (cdr <bindings>) env (+ index 1)))))
+      (ec:append-ins-sequences 
+       (ec:compile-let-binding (car <bindings>) env index)
+       (ec:compile-let-bindings (cdr <bindings>) env (+ index 1)))))
 
 (define (ec:compile-let-binding x env index)
   (let ((value-code (if (pair? x) 
 			(ec:compile (cadr x) env 'val 'next)
-		      (ec:compile '() env 'val 'next)))
+			(ec:compile '() env 'val 'next)))
 	(set-code (ec:make-ins-sequence '(env) '() (ec:make-eset index))))
     ;; collapse candidate
     (ec:append-ins-sequences 
@@ -496,7 +496,6 @@
 ;;
 (define (ec:compile-delay exp env target linkage)
   ;;(ec:trace "ec:compile-delay:" exp env target linkage)
-  ;;(let ((code (ec:compile (cadr exp) env target linkage)))
   (let ((code (ec:compile (cadr exp) env target 'return)))
     (ec:end-with-linkage
      linkage
@@ -515,11 +514,11 @@
 (define (ec:get-arglist args alist)
   (if (null? args)
       (list 'norm (reverse alist))
-    (if (symbol? args)
-	(list 'rest (reverse (cons args alist)))
-      (if (pair? args)
-	  (ec:get-arglist (cdr args) (cons (car args) alist))
-	(error "malformed formal argument list" args alist)))))
+      (if (symbol? args)
+	  (list 'rest (reverse (cons args alist)))
+	  (if (pair? args)
+	      (ec:get-arglist (cdr args) (cons (car args) alist))
+	      (error "malformed formal argument list" args alist)))))
 
 (define (ec:cattrs exp)
   (let ((args (cadr exp)))
@@ -539,10 +538,11 @@
        (ec:make-ins-sequence
 	'()
 	(list target)
-	(ec:make-closure target (ec:get-statements code)
-			        (ec:get-vars proc)
-				(ec:get-numv proc)
-				(ec:get-rest proc))
+	(ec:make-closure target
+			 (ec:get-statements code)
+			 (ec:get-vars proc)
+			 (ec:get-numv proc)
+			 (ec:get-rest proc))
 	)))))
 
 ;;
@@ -562,7 +562,7 @@
 	     (list target)
 	     (ec:make-get-access target sym 'val)
 	     ))))
-      (error "access expects a symbol" exp))))
+	(error "access expects a symbol" exp))))
 
 ;;
 ;; SET!
@@ -571,8 +571,8 @@
   ;;(ec:trace "ec:compile-set-access-sym:" exp)
   (if (not (symbol? exp))
       (error "expected symbol in access form" exp)
-    exp
-    ))
+      exp
+      ))
 
 (define (ec:compile-set-access-env exp env target linkage)
   ;;(ec:trace "ec:compile-set-access-env:" exp env target linkage)
@@ -597,19 +597,20 @@
 		    (list target)
 		    (ec:make-gset x)
 		    )))
-	       (let ((depth (car lookup-result))
-		     (index (cdr lookup-result)))
-		 (ec:end-with-linkage
-		  linkage
-		  ;; collapse candidate
-		  (ec:append-ins-sequences 
-		   value-code
-		   (ec:make-ins-sequence
-		    '(val)
-		    (list target)
-		    (ec:make-fset depth index)
-		    )))))))
+		 (let ((depth (car lookup-result))
+		       (index (cdr lookup-result)))
+		   (ec:end-with-linkage
+		    linkage
+		    ;; collapse candidate
+		    (ec:append-ins-sequences 
+		     value-code
+		     (ec:make-ins-sequence
+		      '(val)
+		      (list target)
+		      (ec:make-fset depth index)
+		      )))))))
 	  ((and (pair? x) (eq? (car x) 'access))
+	   ;; (set! (access var env-expr)  <value>)
 	   (let ((sym (cadr x))
 		 (env-code (ec:compile (caddr x) env 'val 'next))
 		 (value-code (ec:compile (caddr exp) env 'val 'next)))
@@ -639,7 +640,7 @@
 (define (ec:defn-sym exp)
   (if (not (symbol? exp))
       (error "expected symbol in define form" exp)
-    exp ))
+      exp ))
 
 (define (ec:compile-define exp env target linkage)
   ;;(ec:trace "ec:compile-define:" exp env target linkage)
@@ -675,13 +676,11 @@
 	(args-code (map (lambda (arg) (ec:compile arg env 'val 'next)) (cdr exp))))
     (ec:append-ins-sequences
      (ec:make-ins-sequence '() '(argc) '((zero-argc)))
-      (ec:preserve
-       '(val)
-       (ec:pushargs args-code)
-       (ec:preserve
-	'(argc)
-	func-code
-	(ec:compile-fun-call target linkage))))
+     (ec:pushargs args-code)
+     (ec:preserve
+      '(argc)
+      func-code
+      (ec:compile-fun-call target linkage)))
     ))
 
 
@@ -689,13 +688,13 @@
   ;;(ec:trace "pusharg:" (car args-code))
   (if (null? args-code)
       '()
-     (ec:append-ins-sequences
-      (ec:preserve
-       '(argc)
-       (car args-code)
-       (ec:make-ins-sequence '(val argc) '(argc) '((push-arg (reg val)))))
-      (ec:pushargs (cdr args-code))
-      )))
+      (ec:append-ins-sequences
+       (ec:preserve
+	'(argc)
+	(car args-code)
+	(ec:make-ins-sequence '(val argc) '(argc) '((push-arg (reg val)))))
+       (ec:pushargs (cdr args-code)))
+      ))
 
 ;;
 ;; ec:compile-fun-call
@@ -723,9 +722,9 @@
 	  ;;(ec:trace "target=val, linkage=next or label")
 	  (if (eq? linkage 'next)
 	      '((apply))
-	    (append
-	     '((apply))
-	     (ec:make-goto linkage)))
+	      (append
+	       '((apply))
+	       (ec:make-goto linkage)))
 	  )
 	 ((and (eq? target 'val) (eq? linkage 'return))
 	  ;;(ec:trace "target=val, linkage=return")
@@ -745,10 +744,10 @@
   ;;(ec:trace "ec:compile-list:" exp env target linkage)
   (if (or (null? exp) (ec:last-exp? exp)) 
       (ec:compile (car exp) env target linkage)
-    ;; collapse candidate
-    (ec:append-ins-sequences 
-     (ec:compile (car exp) env target 'next)
-     (ec:compile-list (cdr exp) env target linkage))))
+      ;; collapse candidate
+      (ec:append-ins-sequences 
+       (ec:compile (car exp) env target 'next)
+       (ec:compile-list (cdr exp) env target linkage))))
 
 ;;
 ;; AND/OR
@@ -781,9 +780,9 @@
 	(ec:compile-and-or-seq (cdr exp) env test branch-code target linkage)
 	(if (eq? linkage 'return) 
 	    '() 
-	  (if (<= (length exp) 2)
-	      '()
-	    end-label))))
+	    (if (<= (length exp) 2)
+		'()
+		end-label))))
       )))
 
 (define (ec:compile-and-or-seq exp env test branch-code target linkage)
@@ -859,10 +858,10 @@
       (if (ec:cond-else-clause? first)
           (if (null? rest)
               (ec:sequence->exp (ec:cond-actions first))
-            (error "else clause isn't last -- cond->if" clauses))
-        (ec:make-if (ec:cond-predicate first)
-                 (ec:sequence->exp (ec:cond-actions first))
-                 (ec:expand-clauses rest))))))
+	      (error "else clause isn't last -- cond->if" clauses))
+	  (ec:make-if (ec:cond-predicate first)
+		      (ec:sequence->exp (ec:cond-actions first))
+		      (ec:expand-clauses rest))))))
 
 (define (ec:make-if predicate consequent alternative)
   (list 'if predicate consequent alternative))
@@ -926,26 +925,26 @@
 (define (ec:normalize-define d)
   (if (not (and (pair? d) (eq? (car d) 'define)))
       (error "not a define" d)
-    (if (eq? (car d) 'define)
-	(let ((x (cadr d)))
-	  (if (symbol? x)
-	      d
-	    (if (not (pair? d))
-		(error "cannot normalze define" d)
-	      (let ((sym (car x))
-		    (args (cdr x))
-		    (body (cddr d)))
-		(list 'define sym (append '(lambda) (list args) body)))))))))
+      (if (eq? (car d) 'define)
+	  (let ((x (cadr d)))
+	    (if (symbol? x)
+		d
+		(if (not (pair? d))
+		    (error "cannot normalze define" d)
+		    (let ((sym (car x))
+			  (args (cdr x))
+			  (body (cddr d)))
+		      (list 'define sym (append '(lambda) (list args) body)))))))))
 
 (define (ec:accumulate-defines body)
   (let ((defines '())
 	(sexprs '()))
     (while body
-      (let ((x (car body)))
-	(if (and (pair? x) (eq? (car x) 'define))
-	    (set! defines (cons (ec:transform-nested-defines x) defines))
-	  (set! sexprs (cons x sexprs)))
-	(set! body (cdr body))))
+       (let ((x (car body)))
+	 (if (and (pair? x) (eq? (car x) 'define))
+	     (set! defines (cons (ec:transform-nested-defines x) defines))
+	     (set! sexprs (cons x sexprs)))
+	 (set! body (cdr body))))
     (cons defines sexprs)))
 
 (define (ec:makeset d)
@@ -961,18 +960,18 @@
 	    (let ((pair (ec:accumulate-defines <body>)))
 	      (if (null? (car pair))
 		  <nd>
-		(let ((<vars> (map cadr (car pair)))
-		      (<sets> (map ec:makeset (car pair)))
-		      (<sexprs> (reverse (cdr pair)))
-		      (<params> (cadr <lambda>)))
-		  (cons 'define
-			(cons <name>
-			      (cons (cons 'lambda
-					  (cons <params>
-						(cons (append '(let) (list <vars>) <sets> <sexprs>)
-						      nil)))
-				    nil)))
-		  ))))))))
+		  (let ((<vars> (map cadr (car pair)))
+			(<sets> (map ec:makeset (car pair)))
+			(<sexprs> (reverse (cdr pair)))
+			(<params> (cadr <lambda>)))
+		    (cons 'define
+			  (cons <name>
+				(cons (cons 'lambda
+					    (cons <params>
+						  (cons (append '(let) (list <vars>) <sets> <sexprs>)
+							nil)))
+				      nil)))
+		    ))))))))
 ;;
 ;; other compiler support functions
 ;;
@@ -999,7 +998,7 @@
 	    (lambda (seqs)
 	      (if (null? seqs)
 		  (ec:empty-ins-sequence)
-		(append-2-sequences (car seqs) (append-seq-list (cdr seqs)))))))
+		  (append-2-sequences (car seqs) (append-seq-list (cdr seqs)))))))
     (append-seq-list seqs)))
 
 ;; s1 + s2 -> union
@@ -1035,7 +1034,7 @@
 	     (ec:make-restore first-reg)
 	     ))
            seq2)
-        (ec:preserve (cdr regs) seq1 seq2) )) ))
+	  (ec:preserve (cdr regs) seq1 seq2) )) ))
 
 (define (ec:parallel-ins-sequences seq1 seq2)
   (ec:make-ins-sequence
