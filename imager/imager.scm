@@ -105,8 +105,8 @@
 		(let ((bv (make-byte-vector vlen))
 		      (index 0))
 		  (while (< index vlen)
-			 (byte-vector-set! bv index (vector-ref v index))
-			 (set! index (1+ index)))
+		     (byte-vector-set! bv index (vector-ref v index))
+		     (set! index (1+ index)))
 		  bv))))
 	   (load-sexprs 
 	    (lambda (x)

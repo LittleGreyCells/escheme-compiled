@@ -37,38 +37,27 @@
     (assemble (ec:get-statements (ec:compile exp env 'val 'return)))))
 
 (define (ec:compile exp env target linkage)
-  ;;(ec:trace "compile:" exp env target linkage)
-
   (cond ((symbol? exp) 	          (ec:compile-symbol exp env target linkage))
 	((atom? exp)	          (ec:compile-atom exp env target linkage))
 	((pair? exp) 
 	 (let ((x (car exp)))
 	   (cond ((eq? x 'quote)  (ec:compile-quote exp env target linkage))
 		 ((eq? x 'if)     (ec:compile-if exp env target linkage))
-		 
-		 ((eq? x 'cond)   (ec:compile-cond exp env target linkage))
-		 
-		 ((eq? x 'while)  (ec:compile-while exp env target linkage))
-		 
+		 ((eq? x 'cond)   (ec:compile-cond exp env target linkage))		 
+		 ((eq? x 'while)  (ec:compile-while exp env target linkage))		 
 		 ((eq? x 'lambda) (ec:compile-lambda exp env target linkage))
-		 ((eq? x 'set!)   (ec:compile-set! exp env target linkage))
-		 
+		 ((eq? x 'set!)   (ec:compile-set! exp env target linkage))		 
 		 ((eq? x 'let)    (ec:compile-let exp env target linkage))
-		 ((eq? x 'letrec) (ec:compile-letrec exp env target linkage))
-		 
+		 ((eq? x 'letrec) (ec:compile-letrec exp env target linkage))		 
 		 ((eq? x 'delay)  (ec:compile-delay exp env target linkage))
 		 ((eq? x 'access) (ec:compile-access exp env target linkage))
-
 		 ((eq? x 'and)    (ec:compile-and exp env target linkage))
 		 ((eq? x 'or)     (ec:compile-or exp env target linkage))
-
 		 ((or (eq? x 'begin)
 		      (eq? x 'sequence)) 
 		  (ec:compile-seq exp env target linkage))
-
 		 ((eq? x 'define) 
 		  (ec:compile-define (ec:transform-nested-defines exp) env target linkage))
-
 		 (else 
 		  (ec:compile-application exp env target linkage))) ))
 	(else
@@ -79,15 +68,15 @@
 ;; Instruction Constructors
 ;;
 
-;; `((assign ,target (const ,exp)))
+;; `((assign ,target (const ,arg)))
 (define (ec:make-assign target arg)
   (list (list 'assign target (list 'const arg))))
 
-;; `((gref target <sym>))
+;; `((gref ,target ,arg))
 (define (ec:make-gref target arg)
   (list (list 'gref target arg)))
 
-;; `((fref target <depth> <index>))
+;; `((fref target ,<depth> ,<index>))
 (define (ec:make-fref target depth index)
   (list (list 'fref target depth index)))
 
@@ -119,39 +108,39 @@
 (define (ec:make-test test)
   (list (list test '(reg val))))
 
-;;`((make-closure ,target <code> <vars> <numv> <rest> )
+;;`((make-closure ,target ,code ,vars ,numv ,rest )
 (define (ec:make-closure target code vars numv rest)
   (list (list 'make-closure target code vars numv rest )))
 
-;; `((get-access target <sym> <env>))
+;; `((get-access target ,sym ,env))
 (define (ec:make-get-access target sym env)
   (list (list 'get-access target (list 'const sym) (list 'reg env))))
 
-;; `((gset <sym>))
+;; `((gset ,sym))
 (define (ec:make-gset sym)
   (list (list 'gset sym)))
 
-;; `((fset <depth> <index>))
+;; `((fset ,depth ,index))
 (define (ec:make-fset depth index)
   (list (list 'fset depth index)))
 
-;; `((set-access target <sym> <val> <env>))
+;; `((set-access target ,sym ,val ,env))
 (define (ec:make-set-access target sym env)
   (list (list 'set-access target (list 'const sym) '(reg val) (list 'reg env))))
 
-;; `((save ,<reg>))
+;; `((save ,reg))
 (define (ec:make-save reg)
   (list (list 'save reg)))
 
-;; `((restore ,<reg>))
+;; `((restore ,reg))
 (define (ec:make-restore reg)
   (list (list 'restore reg)))
 
-;; `((make-extend-env reg <nvars> <vars>))
+;; `((make-extend-env reg ,nvars ,vars))
 (define (ec:make-extend-env reg nvars vars)
   (list (list 'extend-env reg nvars vars)))
 
-;; `((eset ,<index>))
+;; `((eset ,index))
 (define (ec:make-eset index)
   (list (list 'eset index)))
 
@@ -198,16 +187,15 @@
 ;;    <instructions> )
 ;;
 ;; (ec:preserve
-;;   <regs-seq2-needs>   ;; if <seq1> modifies, <save> <seq1> <restore> <seq2>
-;;   <seq1>
-;;   <seq2> )
+;;    <regs>   ;; if <seq1> modifies <regs>, <save> <seq1> <restore> <seq2>
+;;    <seq1>
+;;    <seq2> )
 ;;
 
 ;;
 ;; ATOM
 ;;
 (define (ec:compile-atom exp env target linkage)
-  ;;(ec:trace "ec:compile-atom:" exp env target linkage)
   (ec:end-with-linkage
    linkage
    (ec:make-ins-sequence
@@ -220,7 +208,6 @@
 ;; QUOTE
 ;;
 (define (ec:compile-quote exp env target linkage)
-  ;;(ec:trace "ec:compile-quote:" exp env)
   (ec:end-with-linkage 
    linkage
    (ec:make-ins-sequence 
@@ -255,7 +242,6 @@
 ;; SYMBOL
 ;;
 (define (ec:compile-symbol exp env target linkage)
-  ;;(ec:trace "ec:compile-symbol:" exp env target linkage)
   (let ((result (ec:lookup-symbol exp env 0)))
     (if (null? result)
 	(ec:end-with-linkage
@@ -282,7 +268,6 @@
   (ec:new-label-number))
 
 (define (ec:compile-if exp env target linkage)
-  ;;(ec:trace "ec:compile-if:" exp env target linkage)
   (let ((true-label (ec:make-label2 'true-branch))
 	(false-label (ec:make-label2 'false-branch))
 	(end-label (ec:make-label2 'end-branch)))
@@ -308,7 +293,6 @@
 ;; COND
 ;;
 (define (ec:compile-cond exp env target linkage)
-  ;;(ec:trace "ec:compile-cond:" exp env target linkage)
   (let ((end-label (ec:make-label2 'end-branch)))
     (let ((<clauses> (ec:compile-cond-clauses (cdr exp) env target linkage end-label)))
       (if (null? <clauses>)
@@ -323,7 +307,6 @@
 	  ))))
 
 (define (ec:compile-cond-clauses exp env target linkage end-label)
-  ;;(ec:trace "ec:compile-cond-clauses:" exp env target linkage)
   (if (null? exp)
       nil
       (ec:append-ins-sequences 
@@ -332,7 +315,6 @@
       ))
 
 (define (ec:compile-cond-clause exp env target linkage end-label last)
-  ;;(ec:trace "ec:compile-cond-clause:" exp env target linkage)
   (if (eq? (car exp) 'else)
       (ec:compile-list (cdr exp) env target linkage)
       (let ((<test> (ec:compile (car exp) env 'val 'next))
@@ -365,7 +347,6 @@
 ;; WHILE
 ;;
 (define (ec:compile-while exp env target linkage)
-  ;;(ec:trace "ec:compile-while:" exp env target linkage)
   (let ((cond-label (ec:make-label2 'cond-branch))
 	(end-label   (ec:make-label2 'end-branch  )))
     (let ((<condition> (ec:compile (cadr exp) env 'val 'next))
@@ -419,7 +400,6 @@
 ;;     (let <bindings> <body>)
 ;;
 (define (ec:compile-let exp env target linkage)
-  ;;(ec:trace "compile-let" exp env target linkage)
   (let ((<bindings> (cadr exp)))
     (let ((<vars> (ec:get-let-vars <bindings>))
 	  (<nvars> (length <bindings>)))
@@ -444,7 +424,6 @@
 ;;
 
 (define (ec:compile-letrec exp env target linkage)
-  ;;(ec:trace "compile-letrec" exp env target linkage)
   (let ((<bindings> (cadr exp)))
     (let ((<vars> (ec:get-let-vars <bindings>))
 	  (<nvars> (length <bindings>)))
@@ -471,7 +450,6 @@
 	    (cons x (ec:get-let-vars (cdr <bindings>)))))))
 
 (define (ec:compile-let-bindings <bindings> env index)
-  ;;(ec:trace "compile-let-bindings" <bindings> env index)
   (if (null? <bindings>)
       nil
       (ec:append-ins-sequences 
@@ -495,7 +473,6 @@
 ;;    (delay <exp>)
 ;;
 (define (ec:compile-delay exp env target linkage)
-  ;;(ec:trace "ec:compile-delay:" exp env target linkage)
   (let ((code (ec:compile (cadr exp) env target 'return)))
     (ec:end-with-linkage
      linkage
@@ -529,7 +506,6 @@
 (define (ec:get-rest cattrs) (eq? (car cattrs) 'rest))
 
 (define (ec:compile-lambda exp env target linkage)
-  ;;(ec:trace "ec:compile-lambda:" exp env target linkage)
   (let ((proc (ec:cattrs exp))
 	(args (cadr exp)))
     (let ((code (ec:compile-list (cddr exp) (ec:extend-env args env) 'val 'return)))
@@ -549,7 +525,6 @@
 ;; ACCESS
 ;;
 (define (ec:compile-access exp env target linkage)
-  ;;(ec:trace "ec:compile-access:" exp env target linkage)
   (let ((sym (cadr exp)))
     (if (symbol? sym)
 	(let ((env-code (ec:compile (caddr exp) env 'val 'next)))
@@ -568,24 +543,20 @@
 ;; SET!
 ;;
 (define (ec:compile-set-access-sym exp)
-  ;;(ec:trace "ec:compile-set-access-sym:" exp)
   (if (not (symbol? exp))
       (error "expected symbol in access form" exp)
       exp
       ))
 
 (define (ec:compile-set-access-env exp env target linkage)
-  ;;(ec:trace "ec:compile-set-access-env:" exp env target linkage)
   (ec:compile exp env target linkage))
 
 (define (ec:compile-set! exp env target linkage)
-  ;;(ec:trace "ec:compile-set!:" exp env target linkage)
   (let ((x (cadr exp)))
     (cond ((symbol? x)
 	   ;; (set! var <value>)
 	   (let ((value-code (ec:compile (caddr exp) env 'val 'next))
 		 (lookup-result (ec:lookup-symbol x env 0)))
-	     ;;(ec:trace "lookup-result:" lookup-result (environment-bindings env))
 	     (if (null? lookup-result)
 		 (ec:end-with-linkage
 		  linkage
@@ -643,7 +614,6 @@
       exp ))
 
 (define (ec:compile-define exp env target linkage)
-  ;;(ec:trace "ec:compile-define:" exp env target linkage)
   (let ((sym (ec:defn-sym (cadr exp)))
 	(value-code (ec:compile (caddr exp) env 'val 'next)))
     (ec:end-with-linkage
@@ -671,7 +641,6 @@
 ;;
 
 (define (ec:compile-application exp env target linkage)
-  ;;(ec:trace "ec:compile-application:" exp env target linkage)
   (let ((func-code (ec:compile (car exp) env 'val 'next))
 	(args-code (map (lambda (arg) (ec:compile arg env 'val 'next)) (cdr exp))))
     (ec:append-ins-sequences
@@ -685,7 +654,6 @@
 
 
 (define (ec:pushargs args-code)
-  ;;(ec:trace "pusharg:" (car args-code))
   (if (null? args-code)
       '()
       (ec:append-ins-sequences
@@ -714,7 +682,6 @@
 ;;
 
 (define (ec:compile-fun-call target linkage)
-  ;;(ec:trace "ec:compile-fun-call:" target linkage)
   (ec:make-ins-sequence
    '(val argc)                                                      ;; fun->val
    '(val env)
@@ -737,11 +704,9 @@
 ;; BEGIN/SEQUENCE
 ;;
 (define (ec:compile-seq exp env target linkage)
-  ;;(ec:trace "ec:compile-seq:" exp env target linkage)
   (ec:compile-list (cdr exp) env target linkage))
 
 (define (ec:compile-list exp env target linkage)
-  ;;(ec:trace "ec:compile-list:" exp env target linkage)
   (if (or (null? exp) (ec:last-exp? exp)) 
       (ec:compile (car exp) env target linkage)
       ;; collapse candidate
@@ -753,11 +718,9 @@
 ;; AND/OR
 ;;
 (define (ec:compile-and exp env target linkage)
-  ;;(ec:trace "ec:compile-and:" exp env target linkage)
   (ec:compile-and-or exp env 'test-false target linkage))
 
 (define (ec:compile-or exp env target linkage)
-  ;;(ec:trace "ec:compile-or:" exp env target linkage)
   (ec:compile-and-or exp env 'test-true target linkage))
 
 (define (ec:make-and-or-branch-code linkage label)
@@ -771,7 +734,6 @@
  
 
 (define (ec:compile-and-or exp env test target linkage)
-  ;;(ec:trace "ec:compile-and-or:" exp env test target linkage)
   (let ((end-label (ec:make-label2 'end)))
     (let ((branch-code (ec:make-and-or-branch-code linkage end-label)))
       (ec:end-with-linkage
@@ -786,7 +748,6 @@
       )))
 
 (define (ec:compile-and-or-seq exp env test branch-code target linkage)
-  ;;(ec:trace "ec:compile-and-or-seq:" exp env test branch-code target linkage)
   (if (or (null? exp) (ec:last-exp? exp))
       (ec:compile (car exp) env target 'next)
     ;; collapse candidate
