@@ -15,7 +15,10 @@
 ;; saved/restored en benc as the function "partial-continuation".
 ;;
 ;;   The elaborate register tracking and save/restore mechanism (preserve) 
-;; has limited but effective use for val(fun) and argc.
+;; has limited but effective use for val, env and argc.
+;;
+;;   This "quick and dirty" first effort could benefit from code optimization
+;; considerations. These are left to later updates.
 ;;
 
 (define ec:compile-verbose #f)
@@ -37,31 +40,30 @@
     (assemble (ec:get-statements (ec:compile exp env 'val 'return)))))
 
 (define (ec:compile exp env target linkage)
-  (cond ((symbol? exp) 	          (ec:compile-symbol exp env target linkage))
-	((atom? exp)	          (ec:compile-atom exp env target linkage))
+  (cond ((symbol? exp) 	            (ec:compile-symbol exp env target linkage))
+	((atom? exp)	            (ec:compile-atom exp env target linkage))
 	((pair? exp) 
 	 (let ((x (car exp)))
-	   (cond ((eq? x 'quote)  (ec:compile-quote exp env target linkage))
-		 ((eq? x 'if)     (ec:compile-if exp env target linkage))
-		 ((eq? x 'cond)   (ec:compile-cond exp env target linkage))		 
-		 ((eq? x 'while)  (ec:compile-while exp env target linkage))		 
-		 ((eq? x 'lambda) (ec:compile-lambda exp env target linkage))
-		 ((eq? x 'set!)   (ec:compile-set! exp env target linkage))		 
-		 ((eq? x 'let)    (ec:compile-let exp env target linkage))
-		 ((eq? x 'letrec) (ec:compile-letrec exp env target linkage))		 
-		 ((eq? x 'delay)  (ec:compile-delay exp env target linkage))
-		 ((eq? x 'access) (ec:compile-access exp env target linkage))
-		 ((eq? x 'and)    (ec:compile-and exp env target linkage))
-		 ((eq? x 'or)     (ec:compile-or exp env target linkage))
-		 ((or (eq? x 'begin)
-		      (eq? x 'sequence)) 
-		  (ec:compile-seq exp env target linkage))
-		 ((eq? x 'define) 
-		  (ec:compile-define (ec:transform-nested-defines exp) env target linkage))
-		 (else 
-		  (ec:compile-application exp env target linkage))) ))
+	   (cond ((eq? x 'quote)    (ec:compile-quote exp env target linkage))
+		 ((eq? x 'if)       (ec:compile-if exp env target linkage))
+		 ((eq? x 'cond)     (ec:compile-cond exp env target linkage))		 
+		 ((eq? x 'while)    (ec:compile-while exp env target linkage))		 
+		 ((eq? x 'lambda)   (ec:compile-lambda exp env target linkage))
+		 ((eq? x 'set!)     (ec:compile-set! exp env target linkage))		 
+		 ((eq? x 'let)      (ec:compile-let exp env target linkage))
+		 ((eq? x 'letrec)   (ec:compile-letrec exp env target linkage))		 
+		 ((eq? x 'delay)    (ec:compile-delay exp env target linkage))
+		 ((eq? x 'access)   (ec:compile-access exp env target linkage))
+		 ((eq? x 'and)      (ec:compile-and exp env target linkage))
+		 ((eq? x 'or)       (ec:compile-or exp env target linkage))
+		 ((eq? x 'begin)    (ec:compile-seq exp env target linkage))
+		 ((eq? x 'sequence) (ec:compile-seq exp env target linkage))
+		 ((eq? x 'define)   (ec:compile-define (ec:normalize-define exp)
+						       env target linkage))
+		 (else              (ec:compile-application exp env target linkage)))
+	 ))
 	(else
-	 (error "unrecognized expression" exp))
+	 (error "ec:compile -- unrecognized expression" exp))
 	))
 
 ;;
@@ -187,7 +189,7 @@
 ;;    <instructions> )
 ;;
 ;; (ec:preserve
-;;    <regs>   ;; if <seq1> modifies <regs>, <save> <seq1> <restore> <seq2>
+;;    <regs>    ;; required by <seq2>
 ;;    <seq1>
 ;;    <seq2> )
 ;;
@@ -495,7 +497,7 @@
 	  (list 'rest (reverse (cons args alist)))
 	  (if (pair? args)
 	      (ec:get-arglist (cdr args) (cons (car args) alist))
-	      (error "malformed formal argument list" args alist)))))
+	      (error "ec:get-arglist -- malformed formal argument list" args alist)))))
 
 (define (ec:cattrs exp)
   (let ((args (cadr exp)))
@@ -537,14 +539,14 @@
 	     (list target)
 	     (ec:make-get-access target sym 'val)
 	     ))))
-	(error "access expects a symbol" exp))))
+	(error "ec:compile-access -- access expects a symbol" exp))))
 
 ;;
 ;; SET!
 ;;
 (define (ec:compile-set-access-sym exp)
   (if (not (symbol? exp))
-      (error "expected symbol in access form" exp)
+      (error "ec:compile-set-access-sym -- expected symbol in access form" exp)
       exp
       ))
 
@@ -579,7 +581,9 @@
 		      '(val)
 		      (list target)
 		      (ec:make-fset depth index)
-		      )))))))
+		      ))
+		    )))
+	     ))
 	  ((and (pair? x) (eq? (car x) 'access))
 	   ;; (set! (access var env-expr)  <value>)
 	   (let ((sym (cadr x))
@@ -601,19 +605,23 @@
 		 '(val)
 		 (list target)
 		 (ec:make-set-access target sym 'exp)
-		 ))))))
+		 ))
+	       ))
+	     ))
 	  (else
-	   (error "illegal target for set!" exp))) ))
+	   (error "ec:compile-set! -- illegal target for set!" exp))) ))
 
 ;;
 ;; DEFINE
 ;;
 (define (ec:defn-sym exp)
   (if (not (symbol? exp))
-      (error "expected symbol in define form" exp)
+      (error "ec:defn-sym -- expected symbol in define form" exp)
       exp ))
 
 (define (ec:compile-define exp env target linkage)
+  (if env
+      (error "ec:compile-define -- internal defines not supported" exp))
   (let ((sym (ec:defn-sym (cadr exp)))
 	(value-code (ec:compile (caddr exp) env 'val 'next)))
     (ec:end-with-linkage
@@ -698,7 +706,9 @@
 	  '((apply-cont))
 	  )
 	 (else
-	  (error "unknown target and linkage combo" (cons target linkage))))))
+	  (error "ec:compile-fun-call -- unknown target and linkage combo"
+		 (cons target linkage))))
+   ))
 
 ;;
 ;; BEGIN/SEQUENCE
@@ -757,8 +767,7 @@
        (ec:make-ins-sequence 
 	'(val) 
 	'() 
-	(ec:make-test test)
-	)
+	(ec:make-test test))
        branch-code
        (ec:compile-and-or-seq (cdr exp) env test branch-code target linkage)))
     ))
@@ -768,9 +777,9 @@
 ;;
 
 (define (ec:compile-linkage linkage)
-  (cond ((eq? linkage 'return) 	 (ec:make-ins-sequence '() '() (ec:make-goto-cont) ))
-	((eq? linkage 'next)     (ec:empty-ins-sequence))
-	(else                    (ec:make-ins-sequence '() '() (ec:make-goto linkage)))
+  (cond ((eq? linkage 'return) (ec:make-ins-sequence '() '() (ec:make-goto-cont) ))
+	((eq? linkage 'next)   (ec:empty-ins-sequence))
+	(else                  (ec:make-ins-sequence '() '() (ec:make-goto linkage)))
 	))
 
 (define (ec:end-with-linkage linkage ins-sequence)
@@ -792,12 +801,12 @@
 	((and (pair? x) (symbol? (car x)))
 	 (cons (car x) (ec:normalize-arg-list (cdr x))))
 	(else
-	 (error "badly formed arg-list tail" x))))
+	 (error "ec:normalize-arg-list -- badly formed arg-list tail" x))))
 
 (define (ec:make-empty-bindings arg-list)
   (if (null? arg-list)
-      ()
-    (cons (cons (car arg-list) nil) (ec:make-empty-bindings (cdr arg-list)))))
+      '()
+      (cons (cons (car arg-list) nil) (ec:make-empty-bindings (cdr arg-list)))))
 
 (define (ec:extend-env arg-list env)
   (let ((x (ec:normalize-arg-list arg-list)))
@@ -805,7 +814,22 @@
 
 (define (ec:last-exp? exp) (null? (cdr exp)))
 
+(define (ec:normalize-define d)
+  (if (not (and (pair? d) (eq? (car d) 'define)))
+      (error "ec:normalize-define -- not a define" d)
+      (if (eq? (car d) 'define)
+	  (let ((x (cadr d)))
+	    (if (symbol? x)
+		d
+		(if (not (pair? d))
+		    (error "ec:normalize-define -- cannot normalze define" d)
+		    (let ((sym (car x))
+			  (args (cdr x))
+			  (body (cddr d)))
+		      (list 'define sym (append '(lambda) (list args) body)))))))))
 
+(if #f
+(begin
 ;;
 ;; Nested Defines
 ;;
@@ -823,27 +847,13 @@
 ;; note 12/20/2019: nested defines added
 ;;
 
-(define (ec:normalize-define d)
-  (if (not (and (pair? d) (eq? (car d) 'define)))
-      (error "not a define" d)
-      (if (eq? (car d) 'define)
-	  (let ((x (cadr d)))
-	    (if (symbol? x)
-		d
-		(if (not (pair? d))
-		    (error "cannot normalze define" d)
-		    (let ((sym (car x))
-			  (args (cdr x))
-			  (body (cddr d)))
-		      (list 'define sym (append '(lambda) (list args) body)))))))))
-
 (define (ec:accumulate-defines body)
   (let ((defines '())
 	(sexprs '()))
     (while body
        (let ((x (car body)))
 	 (if (and (pair? x) (eq? (car x) 'define))
-	     (set! defines (cons (ec:transform-nested-defines x) defines))
+	     (set! defines (cons (ec:xlate-nested-defines x) defines))
 	     (set! sexprs (cons x sexprs)))
 	 (set! body (cdr body))))
     (cons defines sexprs)))
@@ -851,7 +861,7 @@
 (define (ec:makeset d)
   (cons 'set! (cdr d)))
 
-(define (ec:transform-nested-defines d)
+(define (ec:xlate-nested-defines d)
   (let ((<nd> (ec:normalize-define d)))
     (if (not (pair? (caddr <nd>)))
 	<nd>
@@ -873,6 +883,8 @@
 							nil)))
 				      nil)))
 		    ))))))))
+))
+      
 ;;
 ;; other compiler support functions
 ;;
@@ -888,11 +900,11 @@
   (letrec ((append-2-sequences 
 	    (lambda (seq1 seq2)
 	      (ec:make-ins-sequence
-	       (ec:list-union (ec:registers-needed seq1)
-			      (ec:list-difference (ec:registers-needed seq2)
-						  (ec:registers-modified seq1)) )
-	       (ec:list-union (ec:registers-modified seq1)
-			      (ec:registers-modified seq2))
+	       (ec:union (ec:registers-needed seq1)
+			 (ec:difference (ec:registers-needed seq2)
+					(ec:registers-modified seq1)) )
+	       (ec:union (ec:registers-modified seq1)
+			 (ec:registers-modified seq2))
 	       (append (ec:statements seq1) (ec:statements seq2))
 	       )))
 	   (append-seq-list 
@@ -902,19 +914,19 @@
 		  (append-2-sequences (car seqs) (append-seq-list (cdr seqs)))))))
     (append-seq-list seqs)))
 
-;; s1 + s2 -> union
+;; union: s1 + s2
 
-(define (ec:list-union s1 s2)
+(define (ec:union s1 s2)
   (cond ((null? s1) s2)
-        ((memq (car s1) s2) (ec:list-union (cdr s1) s2))
-        (else (cons (car s1) (ec:list-union (cdr s1) s2))) ))
+        ((memq (car s1) s2) (ec:union (cdr s1) s2))
+        (else (cons (car s1) (ec:union (cdr s1) s2))) ))
 
-;; s1 - s2 -> difference
+;; difference: s1 - s2
 
-(define (ec:list-difference s1 s2)
+(define (ec:difference s1 s2)
   (cond ((null? s1) '())
-        ((memq (car s1) s2) (ec:list-difference (cdr s1) s2))
-        (else (cons (car s1) (ec:list-difference (cdr s1) s2))) ))
+        ((memq (car s1) s2) (ec:difference (cdr s1) s2))
+        (else (cons (car s1) (ec:difference (cdr s1) s2))) ))
 
 (define (ec:preserve regs seq1 seq2)
   (if (null? regs)
@@ -925,10 +937,8 @@
           (ec:preserve 
            (cdr regs)
            (ec:make-ins-sequence
-            (ec:list-union (list first-reg) 
-                           (ec:registers-needed seq1))
-            (ec:list-difference (ec:registers-modified seq1)
-                                (list first-reg))
+            (ec:union (list first-reg) (ec:registers-needed seq1))
+            (ec:difference (ec:registers-modified seq1) (list first-reg))
             (append 
 	     (ec:make-save first-reg)
 	     (ec:statements seq1)
@@ -939,10 +949,10 @@
 
 (define (ec:parallel-ins-sequences seq1 seq2)
   (ec:make-ins-sequence
-   (ec:list-union (ec:registers-needed seq1)
-                  (ec:registers-needed seq2))
-   (ec:list-union (ec:registers-modified seq1)
-                  (ec:registers-modified seq2))
+   (ec:union (ec:registers-needed seq1)
+	     (ec:registers-needed seq2))
+   (ec:union (ec:registers-modified seq1)
+	     (ec:registers-modified seq2))
    (append (ec:statements seq1)
            (ec:statements seq2)) ))
 

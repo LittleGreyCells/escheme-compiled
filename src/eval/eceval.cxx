@@ -683,8 +683,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    }
 	    else
 	    {
-	       // extend the current environment with var/val pair
-               append( env, unev, val );
+	       ERROR::severe("internal defines are not supported", unev);
 	    }
 	    val = unev;
 	    next = cont;
