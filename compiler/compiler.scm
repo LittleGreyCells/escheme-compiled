@@ -46,18 +46,20 @@
 	 (let ((x (car exp)))
 	   (cond ((eq? x 'quote)    (ec:compile-quote exp env target linkage))
 		 ((eq? x 'if)       (ec:compile-if exp env target linkage))
-		 ((eq? x 'cond)     (ec:compile-cond exp env target linkage))		 
-		 ((eq? x 'while)    (ec:compile-while exp env target linkage))		 
-		 ((eq? x 'lambda)   (ec:compile-lambda exp env target linkage))
-		 ((eq? x 'set!)     (ec:compile-set! exp env target linkage))		 
-		 ((eq? x 'let)      (ec:compile-let exp env target linkage))
-		 ((eq? x 'letrec)   (ec:compile-letrec exp env target linkage))		 
+		 ((eq? x 'cond)     (ec:compile-cond exp env target linkage))
+		 ((eq? x 'while)    (ec:compile-while exp env target linkage))
+		 
+		 ((eq? x 'lambda)   (ec:compile-lambda (ec:nested-defines exp) env target linkage))
+		 ((eq? x 'let)      (ec:compile-let (ec:nested-defines exp) env target linkage))
+		 ((eq? x 'letrec)   (ec:compile-letrec (ec:nested-defines exp) env target linkage))
+		 
 		 ((eq? x 'delay)    (ec:compile-delay exp env target linkage))
 		 ((eq? x 'access)   (ec:compile-access exp env target linkage))
 		 ((eq? x 'and)      (ec:compile-and exp env target linkage))
 		 ((eq? x 'or)       (ec:compile-or exp env target linkage))
 		 ((eq? x 'begin)    (ec:compile-seq exp env target linkage))
 		 ((eq? x 'sequence) (ec:compile-seq exp env target linkage))
+		 ((eq? x 'set!)     (ec:compile-set! exp env target linkage))
 		 ((eq? x 'define)   (ec:compile-define (ec:normalize-define exp)
 						       env target linkage))
 		 (else              (ec:compile-application exp env target linkage)))
@@ -791,7 +793,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; syntax
+;; Syntax
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -828,23 +830,23 @@
 			  (body (cddr d)))
 		      (list 'define sym (append '(lambda) (list args) body)))))))))
 
-(if #f
+(if #t
 (begin
 ;;
 ;; Nested Defines
 ;;
-;;   (define (foo a b)
+;;   (lambda (a b)
 ;;      (define (mul x y) (* x y))
 ;;      (define (add x y) (+ x y))
 ;;      (mul a (add a b)) )
 ;;    ==>
-;;   (define (foo a b)
+;;   (lambda (a b)
 ;;     (let (mul add)
 ;;       (set! mul (lambda (x y) (* x y)))
 ;;       (set! add (lambda (x y) (+ x y)))
 ;;       (mul a (add a b)) ))
 ;;
-;; note 12/20/2019: nested defines added
+;; note 03/26/2021: nested defines added
 ;;
 
 (define (ec:accumulate-defines body)
@@ -853,7 +855,7 @@
     (while body
        (let ((x (car body)))
 	 (if (and (pair? x) (eq? (car x) 'define))
-	     (set! defines (cons (ec:xlate-nested-defines x) defines))
+	     (set! defines (cons (ec:normalize-define x) defines))
 	     (set! sexprs (cons x sexprs)))
 	 (set! body (cdr body))))
     (cons defines sexprs)))
@@ -861,28 +863,22 @@
 (define (ec:makeset d)
   (cons 'set! (cdr d)))
 
-(define (ec:xlate-nested-defines d)
-  (let ((<nd> (ec:normalize-define d)))
-    (if (not (pair? (caddr <nd>)))
-	<nd>
-	(let ((<name> (cadr <nd>))
-	      (<lambda> (caddr <nd>)))
-	  (let ((<body> (cddr <lambda>)))
-	    (let ((pair (ec:accumulate-defines <body>)))
-	      (if (null? (car pair))
-		  <nd>
-		  (let ((<vars> (map cadr (car pair)))
-			(<sets> (map ec:makeset (car pair)))
-			(<sexprs> (reverse (cdr pair)))
-			(<params> (cadr <lambda>)))
-		    (cons 'define
-			  (cons <name>
-				(cons (cons 'lambda
-					    (cons <params>
-						  (cons (append '(let) (list <vars>) <sets> <sexprs>)
-							nil)))
-				      nil)))
-		    ))))))))
+(define (ec:nested-defines <lambda>)
+  (let ((<kw> (car <lambda>))
+	(<body> (cddr <lambda>)))
+    (let ((pair (ec:accumulate-defines <body>)))
+      (if (null? (car pair))
+	  <lambda>
+	  (let ((<vars> (map cadr (car pair)))
+		(<sets> (map ec:makeset (car pair)))
+		(<sexprs> (reverse (cdr pair)))
+		(<params> (cadr <lambda>)))
+	    (list <kw>
+		  <params>
+		  (append '(let) (list <vars>) <sets> <sexprs>))
+	    ))
+      )))
+
 ))
       
 ;;
