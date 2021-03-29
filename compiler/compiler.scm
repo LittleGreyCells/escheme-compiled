@@ -647,30 +647,29 @@
 ;;   -compile func
 ;;   -funcall
 ;;
-
 (define (ec:compile-application exp env target linkage)
   (let ((func-code (ec:compile (car exp) env 'val 'next))
 	(args-code (map (lambda (arg) (ec:compile arg env 'val 'next)) (cdr exp))))
-    (ec:append-ins-sequences
-     (ec:make-ins-sequence '() '(argc) '((zero-argc)))
-     (ec:pushargs args-code)
-     (ec:preserve
-      '(argc)
-      func-code
-      (ec:compile-fun-call target linkage)))
-    ))
-
-
-(define (ec:pushargs args-code)
-  (if (null? args-code)
-      '()
+    (letrec ((pushargs
+	      (lambda (x)
+		(if (null? x)
+		    '()
+		    (ec:append-ins-sequences
+		     (ec:preserve
+		      '(argc)
+		      (car x)
+		      (ec:make-ins-sequence '(val argc) '(argc) '((push-arg (reg val)))))
+		     (pushargs (cdr x)))
+		    ))))
       (ec:append-ins-sequences
+       (ec:make-ins-sequence '() '(argc) '((zero-argc)))
+       (pushargs args-code)
        (ec:preserve
 	'(argc)
-	(car args-code)
-	(ec:make-ins-sequence '(val argc) '(argc) '((push-arg (reg val)))))
-       (ec:pushargs (cdr args-code)))
-      ))
+	func-code
+	(ec:compile-fun-call target linkage)))
+      )))
+
 
 ;;
 ;; ec:compile-fun-call
@@ -691,20 +690,16 @@
 
 (define (ec:compile-fun-call target linkage)
   (ec:make-ins-sequence
-   '(val argc)                                                      ;; fun->val
+   '(val argc)
    '(val env)
    (cond ((and (eq? target 'val) (not (eq? linkage 'return)))
-	  ;;(ec:trace "target=val, linkage=next or label")
 	  (if (eq? linkage 'next)
 	      '((apply))
 	      (append
 	       '((apply))
-	       (ec:make-goto linkage)))
-	  )
+	       (ec:make-goto linkage))))
 	 ((and (eq? target 'val) (eq? linkage 'return))
-	  ;;(ec:trace "target=val, linkage=return")
-	  '((apply-cont))
-	  )
+	  '((apply-cont)))
 	 (else
 	  (error "ec:compile-fun-call -- unknown target and linkage combo"
 		 (cons target linkage))))
