@@ -21,15 +21,6 @@
 ;; considerations. These are left to later updates.
 ;;
 
-(define ec:compile-verbose #f)
-
-(define (ec:trace . x)
-  (if ec:compile-verbose
-      (begin
-       (display x)
-       (newline)
-       (flush-output *standard-output*))))
-
 (define ec:get-statements caddr)
 
 (define ec:the-global-env (the-environment))
@@ -60,8 +51,7 @@
 		 ((eq? x 'begin)    (ec:compile-seq exp env target linkage))
 		 ((eq? x 'sequence) (ec:compile-seq exp env target linkage))
 		 ((eq? x 'set!)     (ec:compile-set! exp env target linkage))
-		 ((eq? x 'define)   (ec:compile-define (ec:normalize-define exp)
-						       env target linkage))
+		 ((eq? x 'define)   (ec:compile-define (ec:normalize-define exp) env target linkage))
 		 (else              (ec:compile-application exp env target linkage)))
 	 ))
 	(else
@@ -301,55 +291,55 @@
 ;; COND
 ;;
 (define (ec:compile-cond exp env target linkage)
-  (let ((end-label (ec:make-label2 'end-branch)))
-    (let ((<clauses> (ec:compile-cond-clauses (cdr exp) env target linkage end-label)))
-      (if (null? <clauses>)
-	  (ec:end-with-linkage
-	   linkage
-	   nil)
-	  (ec:append-ins-sequences 
-	   <clauses>
-	   (if (eq? linkage 'next)
-	       end-label
-	       nil))
-	  ))))
-
-(define (ec:compile-cond-clauses exp env target linkage end-label)
-  (if (null? exp)
-      nil
-      (ec:append-ins-sequences 
-       (ec:compile-cond-clause (car exp) env target linkage end-label (ec:last-exp? exp))
-       (ec:compile-cond-clauses (cdr exp) env target linkage end-label))
-      ))
-
-(define (ec:compile-cond-clause exp env target linkage end-label last)
-  (if (eq? (car exp) 'else)
-      (ec:compile-list (cdr exp) env target linkage)
-      (let ((<test> (ec:compile (car exp) env 'val 'next))
-	    (<body> (ec:compile-list (cdr exp) env 'val linkage))
-	    (false-label (ec:make-label2 'false-branch)))
-	(ec:append-ins-sequences
-	 <test>
-	 ;; test and branch code
-	 ;;   if last and linkage is return, branch cont
-	 ;;   if last and linkage is next, branch label
-	 ;;   if not last and linkage is return, branch label
-	 ;;   if not last and linkage is next, branch label
-	 (ec:make-ins-sequence '(val) '() (append (ec:make-test-false)
-						  (if (and last (eq? linkage 'return))
-						      (ec:make-branch-cont)
-						      (ec:make-branch false-label))))
-	 <body>
-	 ;; we are done
-	 ;;   if last and linkage is next, nil (goto end is unnecessary)
-	 ;;   if not last and linkage is next, goto end
-	 (if (eq? linkage 'next)
-	     (if last
-		 nil
-		 (ec:make-ins-sequence '() '() (ec:make-goto end-label))))
-	 
-	 false-label
-	 ))))
+  (letrec ((compile-cond-clauses
+	    (lambda (exp env target linkage end-label)
+	      (if (null? exp)
+		  nil
+		  (ec:append-ins-sequences 
+		   (compile-cond-clause (car exp) env target linkage end-label (ec:last-exp? exp))
+		   (compile-cond-clauses (cdr exp) env target linkage end-label))
+		  )))
+	   (compile-cond-clause
+	    (lambda (exp env target linkage end-label last)
+	      (if (eq? (car exp) 'else)
+		  (ec:compile-list (cdr exp) env target linkage)
+		  (let ((<test> (ec:compile (car exp) env 'val 'next))
+			(<body> (ec:compile-list (cdr exp) env 'val linkage))
+			(false-label (ec:make-label2 'false-branch)))
+		    (ec:append-ins-sequences
+		     <test>
+		     ;; test and branch code
+		     ;;   if last and linkage is return, branch cont
+		     ;;   if last and linkage is next, branch label
+		     ;;   if not last and linkage is return, branch label
+		     ;;   if not last and linkage is next, branch label
+		     (ec:make-ins-sequence '(val) '() (append (ec:make-test-false)
+							      (if (and last (eq? linkage 'return))
+								  (ec:make-branch-cont)
+								  (ec:make-branch false-label))))
+		     <body>
+		     ;; we are done
+		     ;;   if last and linkage is next, nil (goto end is unnecessary)
+		     ;;   if not last and linkage is next, goto end
+		     (if (eq? linkage 'next)
+			 (if last
+			     nil
+			     (ec:make-ins-sequence '() '() (ec:make-goto end-label))))
+		     
+		     false-label
+		     ))))) )
+    (let ((end-label (ec:make-label2 'end-branch)))
+      (let ((<clauses> (compile-cond-clauses (cdr exp) env target linkage end-label)))
+	(if (null? <clauses>)
+	    (ec:end-with-linkage
+	     linkage
+	     nil)
+	    (ec:append-ins-sequences 
+	     <clauses>
+	     (if (eq? linkage 'next)
+		 end-label
+		 nil))
+	    )))))
 
 ;;
 ;; WHILE
