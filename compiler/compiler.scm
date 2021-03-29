@@ -821,8 +821,6 @@
 			  (body (cddr d)))
 		      (list 'define sym (append '(lambda) (list args) body)))))))))
 
-(if #t
-(begin
 ;;
 ;; Nested Defines
 ;;
@@ -867,8 +865,6 @@
 		  (append '(let) (list <vars>) <sets> <sexprs>))
 	    ))
       )))
-
-))
       
 ;;
 ;; other compiler support functions
@@ -953,9 +949,6 @@
   (set! ec:label-counter (+ ec:label-counter 1))
   ec:label-counter)
 
-(define (ec:make-label name)
-  (string->symbol (string-append (symbol->string name)
-                                 (integer->string (ec:new-label-number))) ))
 
 ;; [end]
 
