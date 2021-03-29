@@ -651,34 +651,40 @@
 ;;
 ;; ec:compile-fun-call
 ;;
-;; case 1: (target == val, linkage == next or label )
-;;     (apply)
-;;     [(goto ,label)]
-;;   discussion: 
-;;     apply already puts result in val
-;;     [follow with label linkage]
+;; target should always be 'val
 ;;
-;; case 2: (target == val, linkage == return )
+;; case 1: ( linkage == return )
 ;;     (apply-cont)
 ;;   discussion: 
-;;     apply-cont already puts result in val
+;;     apply-cont puts result in val
 ;;     apply-cont does an implicit (goto (reg cont))
 ;;
+;; case 2: ( linkage == next )
+;;     (apply)
+;;   discussion: 
+;;     apply puts result in val
+;;
+;; case 3: ( linkage == label )
+;;     (apply)
+;;     (goto ,label)
+;;   discussion: 
+;;     apply puts result in val
+;;     follow with label linkage
+;;
 (define (ec:compile-fun-call target linkage)
+  (if (not (eq? target 'val))
+      (error "ec:compile-fun-call -- target must be val register" target))
   (ec:make-ins-sequence
    '(val argc)
    '(val env)
-   (cond ((and (eq? target 'val) (not (eq? linkage 'return)))
-	  (if (eq? linkage 'next)
-	      '((apply))
-	      (append
-	       '((apply))
-	       (ec:make-goto linkage))))
-	 ((and (eq? target 'val) (eq? linkage 'return))
+   (cond ((eq? linkage 'return)
 	  '((apply-cont)))
+	 ((eq? linkage 'next)
+	  '((apply)))
 	 (else
-	  (error "ec:compile-fun-call -- unknown target and linkage combo"
-		 (cons target linkage))))
+	  (append
+	   '((apply))
+	   (ec:make-goto linkage))))
    ))
 
 ;;
