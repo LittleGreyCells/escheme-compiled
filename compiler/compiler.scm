@@ -70,7 +70,7 @@
 (define (ec:make-gref target arg)
   (list (list 'gref target arg)))
 
-;; `((fref target ,<depth> ,<index>))
+;; `((fref ,target ,depth ,index))
 (define (ec:make-fref target depth index)
   (list (list 'fref target depth index)))
 
