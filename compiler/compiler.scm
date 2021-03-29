@@ -71,6 +71,10 @@
 ;;
 ;; Instruction Constructors
 ;;
+;;   If macro preprocessing were available at compiler loading time,
+;; then the backquote patterns would be used. However, more tedious
+;; consruction is required.
+;;
 
 ;; `((assign ,target (const ,arg)))
 (define (ec:make-assign target arg)
@@ -116,7 +120,7 @@
 (define (ec:make-closure target code vars numv rest)
   (list (list 'make-closure target code vars numv rest )))
 
-;; `((get-access target ,sym ,env))
+;; `((get-access ,target (const ,sym) (reg ,env))) )
 (define (ec:make-get-access target sym env)
   (list (list 'get-access target (list 'const sym) (list 'reg env))))
 
@@ -128,7 +132,7 @@
 (define (ec:make-fset depth index)
   (list (list 'fset depth index)))
 
-;; `((set-access target ,sym ,val ,env))
+;; `((set-access ,target (const ,sym) (reg val) (reg ,env)))
 (define (ec:make-set-access target sym env)
   (list (list 'set-access target (list 'const sym) '(reg val) (list 'reg env))))
 
@@ -140,7 +144,7 @@
 (define (ec:make-restore reg)
   (list (list 'restore reg)))
 
-;; `((make-extend-env reg ,nvars ,vars))
+;; `((make-extend-env ,reg ,nvars ,vars))
 (define (ec:make-extend-env reg nvars vars)
   (list (list 'extend-env reg nvars vars)))
 
