@@ -495,28 +495,22 @@
 ;;
 ;;    (lambda <args> <body>)
 ;;
-
-(define (ec:get-arglist args alist)
-  (if (null? args)
-      (list 'norm (reverse alist))
-      (if (symbol? args)
-	  (list 'rest (reverse (cons args alist)))
-	  (if (pair? args)
-	      (ec:get-arglist (cdr args) (cons (car args) alist))
-	      (error "ec:get-arglist -- malformed formal argument list" args alist)))))
-
-(define (ec:cattrs exp)
-  (let ((args (cadr exp)))
-    (ec:get-arglist args nil)))
-
-(define (ec:get-vars cattrs) (cadr cattrs))
-(define (ec:get-numv cattrs) (length (cadr cattrs)))
-(define (ec:get-rest cattrs) (eq? (car cattrs) 'rest))
-
 (define (ec:compile-lambda exp env target linkage)
-  (let ((proc (ec:cattrs exp))
-	(args (cadr exp)))
-    (let ((code (ec:compile-list (cddr exp) (ec:extend-env args env) 'val 'return)))
+  (letrec ((get-arglist
+	    (lambda (args alist)
+	      (if (null? args)
+		  (list 'norm (reverse alist))
+		  (if (symbol? args)
+		      (list 'rest (reverse (cons args alist)))
+		      (if (pair? args)
+			  (get-arglist (cdr args) (cons (car args) alist))
+			  (error "ec:compile-lambda -- malformed formal argument list" args alist))))))
+	   (get-cattrs (lambda (exp) (get-arglist (cadr exp) nil)))
+	   (get-vars (lambda (exp) (cadr exp)))
+	   (get-numv (lambda (exp) (length (cadr exp))))
+	   (get-rest (lambda (exp) (eq? (car exp) 'rest))))
+    (let ((cattrs (get-cattrs exp))
+	  (code (ec:compile-list (cddr exp) (ec:extend-env (cadr exp) env) 'val 'return)))
       (ec:end-with-linkage
        linkage
        (ec:make-ins-sequence
@@ -524,9 +518,9 @@
 	(list target)
 	(ec:make-closure target
 			 (ec:get-statements code)
-			 (ec:get-vars proc)
-			 (ec:get-numv proc)
-			 (ec:get-rest proc))
+			 (get-vars cattrs)
+			 (get-numv cattrs)
+			 (get-rest cattrs))
 	)))))
 
 ;;
