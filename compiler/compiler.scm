@@ -9,16 +9,14 @@
 ;;
 ;; Discussion
 ;;
-;;   This implementation has strayed somewhat from that compiler introduced
-;; in SICP. The major differences are registers and register tracking. The 
-;; execution state (unev, env, pc) is no longer tracked individually, but 
-;; saved/restored en benc as the function "partial-continuation".
+;;   The escheme compiler is modeled after the compiler introduced is SICP.
+;; This implementation has strayed somewhat. The major differences are registers
+;; and register tracking. The execution state (unev, env, pc) is no longer
+;; tracked individually, but saved/restored en benc as the function
+;; "partial-continuation".
 ;;
-;;   The elaborate register tracking and save/restore mechanism (preserve) 
+;;   The register tracking and save/restore mechanism (preserve) still has
 ;; has limited but effective use for val, env and argc.
-;;
-;;   This "quick and dirty" first effort could benefit from code optimization
-;; considerations. These are left to later updates.
 ;;
 
 (define ec:get-statements caddr)
@@ -39,11 +37,9 @@
 		 ((eq? x 'if)       (ec:compile-if exp env target linkage))
 		 ((eq? x 'cond)     (ec:compile-cond exp env target linkage))
 		 ((eq? x 'while)    (ec:compile-while exp env target linkage))
-		 
 		 ((eq? x 'lambda)   (ec:compile-lambda (ec:nested-defines exp) env target linkage))
 		 ((eq? x 'let)      (ec:compile-let (ec:nested-defines exp) env target linkage))
 		 ((eq? x 'letrec)   (ec:compile-letrec (ec:nested-defines exp) env target linkage))
-		 
 		 ((eq? x 'delay)    (ec:compile-delay exp env target linkage))
 		 ((eq? x 'access)   (ec:compile-access exp env target linkage))
 		 ((eq? x 'and)      (ec:compile-and exp env target linkage))
@@ -534,15 +530,6 @@
 ;;
 ;; SET!
 ;;
-(define (ec:compile-set-access-sym exp)
-  (if (not (symbol? exp))
-      (error "ec:compile-set-access-sym -- expected symbol in access form" exp)
-      exp
-      ))
-
-(define (ec:compile-set-access-env exp env target linkage)
-  (ec:compile exp env target linkage))
-
 (define (ec:compile-set! exp env target linkage)
   (let ((x (cadr exp)))
     (cond ((symbol? x)
