@@ -687,7 +687,6 @@
 ;;     apply-cont already puts result in val
 ;;     apply-cont does an implicit (goto (reg cont))
 ;;
-
 (define (ec:compile-fun-call target linkage)
   (ec:make-ins-sequence
    '(val argc)
@@ -770,7 +769,6 @@
 ;;
 ;; linkage
 ;;
-
 (define (ec:compile-linkage linkage)
   (cond ((eq? linkage 'return) (ec:make-ins-sequence '() '() (ec:make-goto-cont) ))
 	((eq? linkage 'next)   (ec:empty-ins-sequence))
@@ -841,33 +839,31 @@
 ;;
 ;; note 03/26/2021: nested defines added
 ;;
-
-(define (ec:accumulate-defines body)
-  (let ((defines '())
-	(sexprs '()))
-    (while body
-       (let ((x (car body)))
-	 (if (and (pair? x) (eq? (car x) 'define))
-	     (set! defines (cons (ec:normalize-define x) defines))
-	     (set! sexprs (cons x sexprs)))
-	 (set! body (cdr body))))
-    (cons defines sexprs)))
-
-(define (ec:makeset d)
-  (cons 'set! (cdr d)))
-
 (define (ec:nested-defines <lambda>)
   (let ((<kw> (car <lambda>))
-	(<body> (cddr <lambda>)))
-    (let ((pair (ec:accumulate-defines <body>)))
+	(<body> (cddr <lambda>))
+	(accumulate-defines
+	 (lambda (body)
+	   (let ((defines '())
+		 (sexprs '()))
+	     (while body
+		(let ((x (car body)))
+		  (if (and (pair? x) (eq? (car x) 'define))
+		      (set! defines (cons (ec:normalize-define x) defines))
+		      (set! sexprs (cons x sexprs)))
+		  (set! body (cdr body))))
+	     (cons defines sexprs))))
+	(makeset
+	 (lambda (d)
+	   (cons 'set! (cdr d)))))
+    (let ((pair (accumulate-defines <body>)))
       (if (null? (car pair))
 	  <lambda>
 	  (let ((<vars> (map cadr (car pair)))
-		(<sets> (map ec:makeset (car pair)))
+		(<sets> (map makeset (car pair)))
 		(<sexprs> (reverse (cdr pair)))
 		(<params> (cadr <lambda>)))
-	    (list <kw>
-		  <params>
+	    (list <kw> <params>
 		  (append '(let) (list <vars>) <sets> <sexprs>))
 	    ))
       )))
