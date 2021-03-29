@@ -614,27 +614,27 @@
 ;;
 ;; DEFINE
 ;;
-(define (ec:defn-sym exp)
-  (if (not (symbol? exp))
-      (error "ec:defn-sym -- expected symbol in define form" exp)
-      exp ))
-
 (define (ec:compile-define exp env target linkage)
   (if env
-      (error "ec:compile-define -- internal defines not supported" exp))
-  (let ((sym (ec:defn-sym (cadr exp)))
-	(value-code (ec:compile (caddr exp) env 'val 'next)))
-    (ec:end-with-linkage
-     linkage
-     ;; collapse candidate
-     (ec:append-ins-sequences 
-      value-code
-      (ec:make-ins-sequence 
-       '(val)
-       (list target) 
-       (ec:make-gset sym)
-       ))
-     )))
+      (error "ec:compile-define -- internal defines not supported in this context" exp))
+  (let ((defn-sym
+	  (lambda (exp)
+	    (if (symbol? exp)
+		exp
+		(error "ec:compile-define -- expected symbol in define form" exp)))))
+    (let ((sym (defn-sym (cadr exp)))
+	  (value-code (ec:compile (caddr exp) env 'val 'next)))
+      (ec:end-with-linkage
+       linkage
+       ;; collapse candidate
+       (ec:append-ins-sequences 
+	value-code
+	(ec:make-ins-sequence 
+	 '(val)
+	 (list target) 
+	 (ec:make-gset sym)
+	 ))
+       ))))
 
 ;;
 ;; APPLICATION
