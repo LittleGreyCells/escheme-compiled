@@ -651,8 +651,6 @@
 ;;
 ;; ec:compile-fun-call
 ;;
-;; target should always be 'val
-;;
 ;; case 1: ( linkage == return )
 ;;     (apply-cont)
 ;;   discussion: 
@@ -672,8 +670,6 @@
 ;;     follow with label linkage
 ;;
 (define (ec:compile-fun-call target linkage)
-  (if (not (eq? target 'val))
-      (error "ec:compile-fun-call -- target must be val register" target))
   (ec:make-ins-sequence
    '(val argc)
    '(val env)
