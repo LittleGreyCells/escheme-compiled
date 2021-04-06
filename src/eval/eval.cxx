@@ -343,7 +343,6 @@ void EVAL::initialize()
    bvecset( fep_bcodes, 0, OP_FORCE_VALUE );
    bvecset( fep_bcodes, 1, OP_GOTO_CONT );
 
-
    map_code = MEMORY::code( map_bcodes, MEMORY::vector_null );
    for_code = MEMORY::code( for_bcodes, MEMORY::vector_null );
    rte_code = MEMORY::code( rte_bcodes, MEMORY::vector_null );

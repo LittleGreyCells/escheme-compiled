@@ -22,17 +22,6 @@ namespace escheme
 //
 ///////////////////////////////////////////////////
 
-bool bce_trace_switch = true;
-
-enum EvalSexprRegisters
-{
-   ER_VAL,
-   ER_AUX,
-   ER_ENV,
-   ER_UNEV,
-   ER_EXP,
-};
-
 //
 // (*regs[<spec>]) = <value>
 //

@@ -534,11 +534,6 @@ static SEXPR encode( SEXPR program )
 	    case OP_FOR_APPLY:
 	    case OP_FOR_RESULT:
 	    case OP_FORCE_VALUE:
-	    {
- 	       append_byte( bv, op );
-	       break;
-	    }
-
 	    case OP_PUSH_ARG:
 	    case OP_APPLY:
 	    case OP_APPLY_CONT:
@@ -643,7 +638,7 @@ static void print_byte( SEXPR bv, int index )
 static void print_int16( SEXPR bv, int index )
 {
    char buffer[80];
-   SPRINTF( buffer, "%d",get16(bv, index) );
+   SPRINTF( buffer, "%d", get16(bv, index) );
    PIO::put( buffer );
 }
 

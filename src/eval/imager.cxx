@@ -154,7 +154,7 @@ static void load_file( SEXPR port )
    }
 }
 
-   void IMAGER::image_load( const std::string& fname )
+void IMAGER::image_load( const std::string& fname )
 {
    SEXPR port = PIO::open( MEMORY::string(fname), pm_input, "r" );
    
