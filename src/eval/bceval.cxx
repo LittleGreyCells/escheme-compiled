@@ -196,7 +196,7 @@ void EVAL::bceval()
 	       e = getenvbase(e);
 #endif
 	    val = frameref( getenvframe(e), bcode[pc+1] );
-	    pc += 2;\
+	    pc += 2;
 	    break;
 	 }
 
