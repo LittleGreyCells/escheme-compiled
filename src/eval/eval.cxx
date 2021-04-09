@@ -160,8 +160,6 @@ SEXPR EVAL::extend_env_fun( SEXPR closure )
 
    FRAME frame = getenvframe( regstack.top() );
 
-   setframeclosure( frame, closure );
-
    if ( rargs == false ) 
    {
       // case I: no rest args
