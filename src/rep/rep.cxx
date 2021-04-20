@@ -26,11 +26,11 @@ extern int unix_argc;
 extern char** unix_argv;
 
 // symbol names for hanging sexprs
-const char* SYSTEM_REPLOOP = "*system-rep-loop*";
-const char* SYSTEM_LOADER  = "*system-loader*";
-const char* SYSTEM_PATH    = "*system-path*";
-const char* TOPLEVEL       = "*toplevel*";
-const char* REP_LOOP       = "*rep-loop*";
+const std::string SYSTEM_REPLOOP = "*system-rep-loop*";
+const std::string SYSTEM_LOADER  = "*system-loader*";
+const std::string SYSTEM_PATH    = "*system-path*";
+const std::string TOPLEVEL       = "*toplevel*";
+const std::string REP_LOOP       = "*rep-loop*";
 
 static void define_system()
 {
@@ -79,9 +79,9 @@ static void define_system()
         (string-append home "/" file))))
 )";
 
-   const SEXPR port = PIO::open_on_string( MEMORY::string(system), pm_input );
+   GcSuspension gcs("defsys");
    
-   GcSuspension gcs( "define-system" );
+   auto port = PIO::open_on_string( MEMORY::string(system), pm_input );
    
    setvalue( SYMTAB::enter(SYSTEM_REPLOOP), READER::read(port) );
    setvalue( SYMTAB::enter(SYSTEM_LOADER), READER::read(port) );
@@ -91,7 +91,7 @@ static void define_system()
 #ifdef BYTE_CODE_EVALUATOR
 static std::string system_path( const char* file )
 {
-   const char* home = ::getenv( "ESCHEME" );
+   auto home = ::getenv( "ESCHEME" );
    if ( home )
       return std::string(home) + "/" + file;
    else
@@ -124,7 +124,7 @@ void rep_loop()
    }
    catch (...)
    {
-      printf("Error during system definition. Terminating.\n");
+      printf( "error during system definition\n" );
       return;
    }
 
@@ -134,7 +134,7 @@ void rep_loop()
    //   exit on exceptions and evaluate the toplevel continuation.
    //
 
-   SEXPR exp = getvalue( SYMTAB::enter(SYSTEM_REPLOOP) );
+   auto exp = getvalue( SYMTAB::enter(SYSTEM_REPLOOP) );
 
    while ( true )
    {
@@ -147,12 +147,7 @@ void rep_loop()
       {
 	 exp = SYMTAB::enter(TOPLEVEL);
 
-	 const SEXPR val = getvalue(exp);
-	 
-	 if ( contp(val) ||
-	      funcp(val) ||
-	      specialp(val) ||
-	      closurep(val) )
+	 if ( contp(getvalue(exp)) )
 	 {
 	    // make it into an application
 	    exp = MEMORY::cons( exp, null );
@@ -160,7 +155,7 @@ void rep_loop()
 	 else
 	 {
 	    // abandon the interpreter
-	    printf( "toplevel is unbound\n" );
+	    printf( "toplevel is not a continuation\n" );
 	    return;
 	 }
       }

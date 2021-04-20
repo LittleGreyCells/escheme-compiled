@@ -25,7 +25,7 @@ int main( int argc, char** argv )
 
    try
    {
-      escheme::GcSuspension gcs("escheme-initialization");
+      escheme::GcSuspension gcs("init");
 
       // essential initialization (order is important)
       escheme::MEMORY::initialize();
@@ -40,7 +40,7 @@ int main( int argc, char** argv )
    }
    catch (...)
    {
-      printf( "error during initialization; terminating." );
+      printf( "error during initialization\n" );
       return 0;
    }
 

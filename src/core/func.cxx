@@ -824,11 +824,16 @@ SEXPR FUNC::write_char()
 static SEXPR gc_stats()
 {
    // nodes stats
+#ifdef GC_STATISTICS_DETAILED
    regstack.push( MEMORY::vector(4) );
+#else
+   regstack.push( MEMORY::vector(3) );
+#endif
    
    vectorset( regstack.top(), 0, MEMORY::fixnum( MEMORY::CollectionCount ) );
    vectorset( regstack.top(), 1, MEMORY::fixnum( MEMORY::TotalNodeCount ) );
    vectorset( regstack.top(), 2, MEMORY::fixnum( MEMORY::FreeNodeCount ) );
+   
 #ifdef GC_STATISTICS_DETAILED
    const int N = MEMORY::ReclamationCounts.size();
    regstack.push( MEMORY::vector(N) );
@@ -843,12 +848,20 @@ static SEXPR gc_stats()
 
 SEXPR FUNC::gc()
 {
-   // *
+   //
    // syntax: (gc) -> <statistics>
    //
    argstack.noargs();
    MEMORY::gc();
+   return gc_stats();
+}
 
+SEXPR FUNC::mm()
+{
+   //
+   // syntax: (mm) -> <statistics>
+   //
+   argstack.noargs();
    return gc_stats();
 }
 
@@ -1342,7 +1355,7 @@ SEXPR FUNC::get_output_string()
    ArgstackIterator iter;
    auto port = guard(iter.getlast(), stringportp);
    auto str = getstringportstring(port);
-   return MEMORY::string( str->c_str() );
+   return MEMORY::string( *str );
 }
 
 //
@@ -1362,10 +1375,6 @@ SEXPR FUNC::string_append()
    // syntax: (string-append <s1> <s2> ... <sn>) -> <string>
    //
    ArgstackIterator iter;
-
-   if ( !iter.more() )
-      return MEMORY::string_null;
-
    std::string ss;
 
    while ( iter.more() )

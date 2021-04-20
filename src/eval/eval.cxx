@@ -341,11 +341,13 @@ void EVAL::initialize()
    bvecset( fep_bcodes, 0, OP_FORCE_VALUE );
    bvecset( fep_bcodes, 1, OP_GOTO_CONT );
 
-   map_code = MEMORY::code( map_bcodes, MEMORY::vector_null );
-   for_code = MEMORY::code( for_bcodes, MEMORY::vector_null );
-   rte_code = MEMORY::code( rte_bcodes, MEMORY::vector_null );
-   rtc_code = MEMORY::code( rtc_bcodes, MEMORY::vector_null );
-   fep_code = MEMORY::code( fep_bcodes, MEMORY::vector_null );
+   auto vector_null = MEMORY::vector(0);
+   
+   map_code = MEMORY::code( map_bcodes, vector_null );
+   for_code = MEMORY::code( for_bcodes, vector_null );
+   rte_code = MEMORY::code( rte_bcodes, vector_null );
+   rtc_code = MEMORY::code( rtc_bcodes, vector_null );
+   fep_code = MEMORY::code( fep_bcodes, vector_null );
 
    SYMTAB::enter( "%%map-code", map_code );
    SYMTAB::enter( "%%for-code", for_code );
