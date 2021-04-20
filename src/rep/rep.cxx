@@ -89,7 +89,7 @@ static void define_system()
 }
 
 #ifdef BYTE_CODE_EVALUATOR
-static std::string system_path( const char* file )
+static std::string system_path( const std::string& file )
 {
    auto home = ::getenv( "ESCHEME" );
    if ( home )
