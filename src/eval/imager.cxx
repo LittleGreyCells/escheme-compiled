@@ -26,7 +26,7 @@ static void eval( SEXPR exp )
 
 static SEXPR vector_to_bvec( SEXPR v )
 {
-   SEXPR bv = MEMORY::byte_vector( getvectorlength(v) );
+   auto bv = MEMORY::byte_vector( getvectorlength(v) );
    
    for ( int i = 0; i < getbveclength(bv); ++i )
       bvecset( bv, i, static_cast<BYTE>( getfixnum(vectorref(v, i)) ) );
@@ -39,12 +39,12 @@ static SEXPR load_code( SEXPR x );
 static SEXPR load_sexprs( SEXPR x )
 {
    // x = (<size> <tag> <item> ...);
-   const SEXPR size = car(x);
+   const auto size = car(x);
 
    if ( !fixnump(size) )
       ERROR::severe( "not a legal size for sexprs vector", size );
    
-   SEXPR sexprs = MEMORY::vector( static_cast<int>( getfixnum( size ) ) );
+   auto sexprs = MEMORY::vector( static_cast<int>( getfixnum( size ) ) );
 
    regstack.push( sexprs );
 
@@ -53,7 +53,7 @@ static SEXPR load_sexprs( SEXPR x )
       x = cdr(x);
       
       // x = (<tag> <item> <tag> <item> ...);
-      SEXPR tag = guard( car(x), fixnump );
+      auto tag = guard( car(x), fixnump );
       
       x = cdr(x);
       // x = (<item> <tag> <item> ...);
@@ -87,7 +87,7 @@ static SEXPR load_sexprs( SEXPR x )
 
 static SEXPR load_code( SEXPR x )
 {
-   SEXPR v = car(x);
+   auto v = car(x);
 
    if ( !vectorp(v) )
       ERROR::severe( "not a vector", v );
@@ -97,13 +97,13 @@ static SEXPR load_code( SEXPR x )
    if ( !(consp(x) && car(x) == SYMTAB::enter("<sexpr>")) )
       ERROR::severe( "not sexprs vector" );
 
-   SEXPR sexprs = load_sexprs( cdr(x) );
+   auto sexprs = load_sexprs( cdr(x) );
    regstack.push( sexprs );
    
-   SEXPR bvec = vector_to_bvec(v);
+   auto bvec = vector_to_bvec(v);
    regstack.push( bvec );
    
-   SEXPR code = MEMORY::code( null, null );
+   auto code = MEMORY::code( null, null );
    code_setbcodes(code, bvec);
    code_setsexprs(code, sexprs);
    
@@ -115,7 +115,7 @@ static SEXPR load_code( SEXPR x )
 
 static SEXPR try_load_code( SEXPR port )
 {
-   SEXPR x = READER::read(port);
+   auto x = READER::read(port);
    
    if ( consp(x) && car(x) == SYMTAB::enter("<code>") )
    {
@@ -131,7 +131,7 @@ static SEXPR try_load_code( SEXPR port )
 
 static void load_file( SEXPR port )
 {
-   SEXPR code = try_load_code(port);
+   auto code = try_load_code(port);
    
    while ( !READER::eof_objectp(code) )
    {
@@ -156,7 +156,7 @@ static void load_file( SEXPR port )
 
 void IMAGER::image_load( const std::string& fname )
 {
-   SEXPR port = PIO::open( MEMORY::string(fname), pm_input, "r" );
+   auto port = PIO::open( MEMORY::string(fname), pm_input, "r" );
    
    regstack.push(port);
    load_file(port);
