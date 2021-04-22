@@ -19,11 +19,6 @@ static auto verbose = false;
 // LOAD
 //
 
-static void eval( SEXPR exp )
-{
-   EVAL::bceval( exp );
-}
-
 static SEXPR vector_to_bvec( SEXPR v )
 {
    auto bv = MEMORY::byte_vector( getvectorlength(v) );
@@ -147,8 +142,9 @@ static void load_file( SEXPR port )
          PRINTER::print( code_getsexprs(code) );
          PRINTER::newline();         
       }
+      
       // evaluate the constructed code object
-      eval( code );
+      EVAL::bceval( code );
       
       code = try_load_code(port);
    }
@@ -163,6 +159,49 @@ void IMAGER::image_load( const std::string& fname )
    regstack.pop();
    
    PIO::close(port);
+}
+
+SEXPR IMAGER::image_get_one( const std::string& fname )
+{
+   auto port = PIO::open( MEMORY::string(fname), pm_input, "r" );
+   regstack.push(port);
+   
+   auto code = try_load_code(port);
+   
+   regstack.pop();
+   PIO::close(port);
+
+   return code;
+}
+
+SEXPR IMAGER::image_get_all( const std::string& fname )
+{
+   auto port = PIO::open( MEMORY::string(fname), pm_input, "r" );
+   regstack.push(port);
+
+   regstack.push(null);
+   auto& all = regstack.top();
+   
+   auto code = try_load_code(port);
+      
+   while ( !READER::eof_objectp(code) )
+   {
+      // do NOT evaluate the constructed code object
+      regstack.push( code );
+      all = MEMORY::cons( code, all );
+      regstack.pop();
+      
+      code = try_load_code(port);
+   }
+
+   // remove all
+   regstack.pop();
+
+   // remove the port
+   regstack.pop();
+   PIO::close(port);
+
+   return all;
 }
 
 }
