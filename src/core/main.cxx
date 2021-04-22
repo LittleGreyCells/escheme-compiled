@@ -45,7 +45,7 @@ int main( int argc, char** argv )
    }
 
    // enter REP and return on controlled exit
-   escheme::rep_loop();
+   escheme::rep_loop( argc, argv );
 
    return 0;
 }

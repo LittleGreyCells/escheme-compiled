@@ -21,9 +21,6 @@
 
 namespace escheme
 {
-   
-extern int unix_argc;
-extern char** unix_argv;
 
 // symbol names for hanging sexprs
 const std::string SYSTEM_REPLOOP = "*system-rep-loop*";
@@ -99,7 +96,7 @@ static std::string system_path( const std::string& file )
 }
 #endif
 
-void rep_loop()
+void rep_loop( int argc, char** argv )
 {
    // build the "system"
 
@@ -107,9 +104,9 @@ void rep_loop()
    {
 #ifdef BYTE_CODE_EVALUATOR
       bool load_compiler = true;
-      if ( escheme::unix_argc > 1 )
+      if ( argc > 1 )
       {
-	 std::string arg1 = escheme::unix_argv[1];
+	 std::string arg1 = argv[1];
 	 if ( arg1 == "-i" || arg1 == "--interpreter" )
 	    load_compiler = false;
       }
