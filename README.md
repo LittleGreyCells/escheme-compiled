@@ -5,8 +5,6 @@ The _escheme_ interpreter with compilation system
 
 ## Introduction
 
-"dyad" -- consisting of two elements or parts
-
 _SICP_ also describes an abstract machine and a compiler to transform 
 scheme expressions into executable code. This second implementation of _escheme_ runs
 with that idea, creating an abstract machine which closely parallels the
@@ -14,13 +12,19 @@ interpreter core, but eliminating the interpreter's repeated analysis.
 
 ## Two Worlds
 
+"dyad" -- consisting of two elements or parts
+
 Evaluation can move freely between the interpreter's explict 
-control evaluator and the compiler's targeted byte code evaluator. This flexibility 
+control evaluator (ECE) and the compiler's targeted byte code evaluator (BCE). This flexibility 
 offers the developer the option of choosing intepretation during development and 
 compilation for system delivery.
 
 _escheme compiled_ by default boots into the read-compile-eval-print loop, but can also 
-be configured to boot into the interpreter's read-eval-print loop. 
+be configured to boot into the interpreter's read-eval-print loop, if invoked with the 
+"-i/--interpreter" argument. The compiler's source
+can be loaded, modified, reloaded to support compiler developement. The imager can be
+loaded and used to generate a new compiler image which can be used to boot into 
+BCE mode.
 
 ## Implementation 
 
