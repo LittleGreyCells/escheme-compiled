@@ -273,7 +273,7 @@ static void resolve_jumps( std::vector<BYTE>& bv,
 
 static SEXPR clone( std::vector<BYTE>& bv )
 {
-   SEXPR v = MEMORY::byte_vector( bv.size() );
+   auto v = MEMORY::byte_vector( bv.size() );
 
    for ( int i = 0; i < bv.size(); i += 1 )
       bvecset( v, i, bv[i] );
@@ -283,7 +283,7 @@ static SEXPR clone( std::vector<BYTE>& bv )
 
 static SEXPR clone( std::vector<SEXPR>& sv )
 {
-   SEXPR v = MEMORY::vector( sv.size() );
+   auto v = MEMORY::vector( sv.size() );
 
    for ( int i = 0; i < sv.size(); i += 1 )
       vectorset( v, i, sv[i] );
@@ -307,7 +307,7 @@ static SEXPR encode( SEXPR program )
 
    while ( !nullp(program) )
    {
-      SEXPR x = car(program);
+      auto x = car(program);
 
       if ( symbolp(x) || fixnump(x) )
       {
@@ -322,7 +322,7 @@ static SEXPR encode( SEXPR program )
 	 }
 
 	 // encode the instruction
-	 const SEXPR opsym = car(x);
+	 const auto opsym = car(x);
 	 OpCodes op = find_op( opsym );
 
 	 switch ( op )
@@ -347,7 +347,7 @@ static SEXPR encode( SEXPR program )
 	    {
 	       // (assign <reg> (const <obj>))
 	       // (assign <reg> (reg <reg>))
-	       const SEXPR source = car(cdr(cdr(x)));
+	       const auto source = car(cdr(cdr(x)));
 
 	       if ( car(source) == symbol_reg )
 	       {
@@ -362,7 +362,7 @@ static SEXPR encode( SEXPR program )
 		  op = OP_ASSIGN_OBJ;
 		  // (const <value>))
 		  append_byte( bv, op );
-		  const SEXPR obj = car(cdr(source));
+		  const auto obj = car(cdr(source));
 		  append_byte( bv, add_sexpr( sv, obj ) );
 	       }
 	       else
@@ -378,7 +378,7 @@ static SEXPR encode( SEXPR program )
 	       //   note: the compiler still embeds the register,
 	       //         even though register <val> is the only target
 	       append_byte( bv, op );
-	       const SEXPR obj = car(cdr(cdr(x)));
+	       const auto obj = car(cdr(cdr(x)));
 	       append_byte( bv, add_sexpr( sv, obj ) );
 	       break;
 	    }
@@ -387,7 +387,7 @@ static SEXPR encode( SEXPR program )
 	    {
 	       // (gset <sym>) 
 	       append_byte( bv, op );
-	       const SEXPR obj = car(cdr(x));
+	       const auto obj = car(cdr(x));
 	       append_byte( bv, add_sexpr( sv, obj ) );
 	       break;
 	    }
@@ -396,7 +396,7 @@ static SEXPR encode( SEXPR program )
 	    {
 	       // (fref <reg> <depth> <index>) 
 	       append_byte( bv, op );
-	       const SEXPR di = cdr(cdr(x));          // (<depth> <index>)
+	       const auto di = cdr(cdr(x));          // (<depth> <index>)
 	       append_byte( bv, fixnum(car(di)) );
 	       append_byte( bv, fixnum(car(cdr(di))) );
 	       break;
@@ -406,7 +406,7 @@ static SEXPR encode( SEXPR program )
 	    {
 	       // (fset <depth> <index>)
 	       append_byte( bv, op );
-	       const SEXPR di = cdr(x);               // (<depth> <index>)
+	       const auto di = cdr(x);               // (<depth> <index>)
 	       append_byte( bv, fixnum(car(di)) );
 	       append_byte( bv, fixnum(car(cdr(di))) );
 	       break;
@@ -418,7 +418,7 @@ static SEXPR encode( SEXPR program )
 	       //    -register <val> contains the environment
 	       //    -register <val> is always the destination
 	       append_byte( bv, op );
-	       const SEXPR cs = car(cdr(cdr(x)));   // (const <sym>)
+	       const auto cs = car(cdr(cdr(x)));   // (const <sym>)
 	       append_byte( bv, add_sexpr( sv, car(cdr(cs)) ) );
 	       break;
 	    }
@@ -438,7 +438,7 @@ static SEXPR encode( SEXPR program )
 	       //        (restore exp)        ;; =<env>
 	       //        (set-access val (const <sym>) (reg val) (reg exp))
 	       append_byte( bv, op );
-	       const SEXPR cs = car(cdr(cdr(x)));   // (const <sym>)
+	       const auto cs = car(cdr(cdr(x)));   // (const <sym>)
 	       append_byte( bv, add_sexpr( sv, car(cdr(cs)) ) );
 	       break;
 	    }
@@ -475,14 +475,14 @@ static SEXPR encode( SEXPR program )
 	    {
 	       // (branch (label <label>))
 	       // (branch (reg cont))
-	       const SEXPR target = car(cdr(x));
+	       const auto target = car(cdr(x));
 
 	       if ( car(target) == symbol_label )
 	       {
 		  op = OP_BRANCH;
 		  // (label <label>)
 		  append_byte( bv, op );
-		  const SEXPR label = car(cdr(target));
+		  const auto label = car(cdr(target));
 		  add_assoc( jumps, label, bv.size() );
 		  // make room for branch location
 		  append_byte( bv, 0 );
@@ -501,14 +501,14 @@ static SEXPR encode( SEXPR program )
 	    {
 	       // (goto (label <label>))
 	       // (goto (reg cont))
-	       const SEXPR target = car(cdr(x));
+	       const auto target = car(cdr(x));
 
 	       if ( car(target) == symbol_label )
 	       {
 		  op = OP_GOTO;
 		  // (label <label>)
 		  append_byte( bv, op );
-		  const SEXPR label = car(cdr(target));
+		  const auto label = car(cdr(target));
 		  add_assoc( jumps, label, bv.size() );
 		  // make room for branch location
 		  append_byte( bv, 0 );
@@ -575,7 +575,7 @@ static SEXPR encode( SEXPR program )
 
    resolve_jumps( bv, jumps, labels );
 
-   SEXPR code = MEMORY::code( null, null );
+   auto code = MEMORY::code( null, null );
    
    // protect it
    regstack.push( code );
@@ -596,7 +596,7 @@ SEXPR ASSEM::encode()
    // syntax: (assemble <program>)
    //
    ArgstackIterator iter;
-   const SEXPR program = guard(iter.getlast(), listp);
+   const auto program = guard(iter.getlast(), listp);
    
    return encode( program );
 }
@@ -624,7 +624,7 @@ static void print_reg( SEXPR bv, int index )
 static void print_sexpr( SEXPR sv, SEXPR bv, int index )
 {
    const int sexpr_index = bvecref(bv, index);
-   const SEXPR sexpr = vectorref(sv, sexpr_index);
+   const auto sexpr = vectorref(sv, sexpr_index);
    PRINTER::print( sexpr );
 }
 
@@ -670,8 +670,8 @@ static void indent( int level )
 static void decode( SEXPR code, int level=0 )
 {
    char buffer[80];
-   SEXPR bv = code_getbcodes(code);
-   SEXPR sv = code_getsexprs(code);
+   auto bv = code_getbcodes(code);
+   auto sv = code_getsexprs(code);
    int index = 0;
 
    indent( level );
@@ -862,7 +862,7 @@ SEXPR ASSEM::decode()
    // syntax: (disassemble <code>)
    //
    ArgstackIterator iter;
-   const SEXPR code = guard(iter.getlast(), codep);
+   const auto code = guard(iter.getlast(), codep);
    decode( code, 0 );
    return null;
 }

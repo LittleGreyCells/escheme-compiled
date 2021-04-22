@@ -67,7 +67,7 @@ static SEXPR load_sexprs( SEXPR x )
          }
          case 1:
          {
-            SEXPR item = car(x);
+            auto item = car(x);
             if ( car(item) == SYMTAB::enter("<code>")  )
                vectorset( sexprs, i, load_code( cdr(item) ) );
             else
