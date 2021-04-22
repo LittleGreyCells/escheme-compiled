@@ -23,8 +23,8 @@ _escheme compiled_ by default boots into the read-compile-eval-print loop, but c
 be configured to boot into the interpreter's read-eval-print loop, if invoked with the 
 "-i/--interpreter" argument. The compiler's source
 can be loaded, modified, reloaded to support compiler developement. The imager can be
-loaded and used to generate a new compiler image which can be used to boot into 
-BCE mode.
+loaded (see ./imager) and used to generate a new compiler image which subsequently
+can be used to boot into BCE mode.
 
 ## Implementation 
 
