@@ -58,7 +58,7 @@ SEXPR EVAL::lookup( SEXPR var, SEXPR env )
       
       for ( int i = 0; anyp(vars); ++i, vars = getcdr(vars) )
       {
-         if (getcar(vars) == var) 
+         if ( getcar(vars) == var ) 
             return frameref(frame, i);
       }
    }
@@ -84,9 +84,9 @@ void EVAL::set_variable_value( SEXPR var, SEXPR val, SEXPR env )
 
       for ( int i = 0; anyp(vars); ++i, vars = getcdr(vars) )
       {
-         if (getcar(vars) == var)
+         if ( getcar(vars) == var )
          {
-            frameset(frame, i, val);
+            frameset( frame, i, val );
             return;
          }
       }
@@ -105,7 +105,7 @@ void EVAL::set_variable_value( SEXPR var, SEXPR val, SEXPR env )
 //       (a . b) == (a #!rest b)
 //
 
-void EVAL::parse_formals( SEXPR formals, SEXPR& vars, BYTE& numv, BYTE& rargs )
+void EVAL::parse_formals( SEXPR formals, SEXPR& vars, INT32& numv, bool& rargs )
 {
    numv = 0;
    rargs = false;
@@ -135,9 +135,9 @@ void EVAL::parse_formals( SEXPR formals, SEXPR& vars, BYTE& numv, BYTE& rargs )
 
 static void arg_error( const char* text, unsigned n1, unsigned n2, SEXPR fun )
 {
-   char msg[80];
-   SPRINTF( msg, "%s -- actual=%u, expected=%u", text, n1, n2 );
-   ERROR::severe( msg, fun );
+   char buffer[80];
+   SPRINTF( buffer, "%s -- actual=%u, expected=%u", text, n1, n2 );
+   ERROR::severe( buffer, fun );
 }
 
 SEXPR EVAL::extend_env_fun( SEXPR closure )
@@ -152,7 +152,7 @@ SEXPR EVAL::extend_env_fun( SEXPR closure )
 
    const auto nactual = static_cast<int>(argstack.getargc());
    const auto nformal = static_cast<int>(getclosurenumv(closure));
-   const SEXPR benv = getclosurebenv(closure);
+   const auto benv = getclosurebenv(closure);
    const bool rargs = getclosurerargs(closure);
 
    // create an extended environment
@@ -168,7 +168,7 @@ SEXPR EVAL::extend_env_fun( SEXPR closure )
       //
       if ( nactual != nformal )
       {
-	 if (nactual < nformal)
+	 if ( nactual < nformal )
 	    arg_error( "too few arguments", nactual, nformal, closure );
 	 else
 	    arg_error( "too many arguments", nactual, nformal, closure );
@@ -228,7 +228,7 @@ SEXPR EVAL::extend_env_vars( SEXPR bindings, SEXPR benv )
    while ( anyp(bindings) )
    {
       nvars++;
-      SEXPR v = car(bindings);
+      auto v = car(bindings);
       if ( consp(v) )
 	 v = car(v);
       vars.add( v );
@@ -256,7 +256,7 @@ SEXPR EVAL::get_evaluator_state()
    for ( int i = 0; i < is_depth; ++i )
       vectorset( regstack.top(), i, MEMORY::fixnum(intstack[i]) );
 
-   SEXPR evs = MEMORY::vector(3);
+   auto evs = MEMORY::vector(3);
    vectorset( evs, 2, regstack.pop() );
    vectorset( evs, 1, regstack.pop() );
    vectorset( evs, 0, regstack.pop() );
@@ -317,11 +317,11 @@ void EVAL::initialize()
    //
    // create code fragments
    //
-   SEXPR map_bcodes = MEMORY::byte_vector( 5 );
-   SEXPR for_bcodes = MEMORY::byte_vector( 5 );
-   SEXPR rte_bcodes = MEMORY::byte_vector( 1 );
-   SEXPR rtc_bcodes = MEMORY::byte_vector( 1 );
-   SEXPR fep_bcodes = MEMORY::byte_vector( 2 );;
+   auto map_bcodes = MEMORY::byte_vector( 5 );
+   auto for_bcodes = MEMORY::byte_vector( 5 );
+   auto rte_bcodes = MEMORY::byte_vector( 1 );
+   auto rtc_bcodes = MEMORY::byte_vector( 1 );
+   auto fep_bcodes = MEMORY::byte_vector( 2 );;
 
    bvecset( map_bcodes, 0, OP_MAP_INIT );
    bvecset( map_bcodes, 1, OP_MAP_APPLY );
