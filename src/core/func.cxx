@@ -50,18 +50,16 @@ bool procedurep(const SEXPR s) { return primp(s) || closurep(s); }
 SEXPR FUNC::predicate( PREDICATE pred )
 {
    ArgstackIterator iter;
-   const SEXPR arg = iter.getlast();
+   auto arg = iter.getlast();
    return pred(arg) ? symbol_true : symbol_false;
 }
 
 SEXPR FUNC::cxr( const char* x )
 {
    ArgstackIterator iter;
-   SEXPR exp = iter.getlast();
-
+   auto exp = iter.getlast();
    for ( int i = 0; x[i]; ++i )
       exp = (x[i] == 'a') ? car(exp) : cdr(exp);
-
    return exp;
 }
 
@@ -71,11 +69,11 @@ SEXPR FUNC::cxr( const char* x )
 
 SEXPR FUNC::exit()
 {
-   // *
+   //
    // syntax: (exit)
    //
    argstack.noargs();
-   throw ERROR::Exit();
+   return ERROR::exit();
 }
 
 //
@@ -88,8 +86,8 @@ SEXPR FUNC::cons()
    // syntax: (cons <car> <cdr>)
    //
    ArgstackIterator iter;
-   const SEXPR car = iter.getarg();
-   const SEXPR cdr = iter.getlast();
+   auto car = iter.getarg();
+   auto cdr = iter.getlast();
    return MEMORY::cons(car, cdr);
 }
 
@@ -117,8 +115,8 @@ SEXPR FUNC::set_car()
    // syntax: (set-car! <cons> <newcar>) -> <cons>
    //
    ArgstackIterator iter;
-   const SEXPR cons = guard( iter.getarg(), consp );
-   const SEXPR newcar = iter.getlast();
+   auto cons = guard( iter.getarg(), consp );
+   auto newcar = iter.getlast();
    setcar( cons, newcar );
    return cons;
 }
@@ -129,8 +127,8 @@ SEXPR FUNC::set_cdr()
    // syntax: (set-cdr! <cons> <newcdr>) -> <cons>
    //
    ArgstackIterator iter;
-   const SEXPR cons = guard( iter.getarg(), consp );
-   const SEXPR newcdr = iter.getlast();
+   auto cons = guard( iter.getarg(), consp );
+   auto newcdr = iter.getlast();
    setcdr( cons, newcdr );
    return cons;
 }
@@ -141,7 +139,7 @@ SEXPR FUNC::length()
    // syntax: (length <list>)
    //
    ArgstackIterator iter;
-   const SEXPR n = guard(iter.getlast(), listp);
+   auto n = guard(iter.getlast(), listp);
    return MEMORY::fixnum(list_length(n));
 }
 
@@ -175,23 +173,23 @@ SEXPR FUNC::liststar()
    else
    {
       ArgstackIterator iter;
-      if  (argc ==  1)
+      if  ( argc == 1 )
 	 return iter.getlast();
 
-      SEXPR cell = MEMORY::cons(iter.getarg(), null);
+      auto cell = MEMORY::cons(iter.getarg(), null);
       regstack.push(cell);
 
-      while (true)
+      while ( true )
       {
-	 SEXPR next = iter.getarg();
+	 auto next = iter.getarg();
 	 if ( !iter.more() )
 	 {
-	    setcdr(cell, next);
+	    setcdr( cell, next );
 	    return regstack.pop();
 	 }
 	 else
 	 {
-	    setcdr(cell, MEMORY::cons(next, null));
+	    setcdr( cell, MEMORY::cons(next, null) );
 	    cell = getcdr(cell);
 	 }
       }
@@ -210,11 +208,11 @@ SEXPR FUNC::bvector()
    //
    ArgstackIterator iter;
    const int n = argstack.getargc();
-   SEXPR v = MEMORY::byte_vector(n);
+   auto v = MEMORY::byte_vector(n);
 
    for ( int i = 0; i < n; ++i )
    {
-      const SEXPR byte = guard(iter.getarg(), fixnump);
+      auto byte = guard(iter.getarg(), fixnump);
       bvecset( v, i, static_cast<BYTE>( getfixnum(byte) ) );
    }
 
@@ -241,11 +239,11 @@ SEXPR FUNC::bvector_ref()
    // syntax: (byte-vector-ref <vector> <index>)
    //
    ArgstackIterator iter;
-   const SEXPR bv      = guard(iter.getarg(), bvecp);
-   const SEXPR bvindex = guard(iter.getlast(), fixnump);
-   const int   index   = getfixnum(bvindex);
+   auto bv      = guard(iter.getarg(), bvecp);
+   auto bvindex = guard(iter.getlast(), fixnump);
+   const int index = getfixnum(bvindex);
 
-   if ( index < 0 || index >= static_cast<int>(getbveclength(bv)) )
+   if ( index < 0 || index >= getbveclength(bv) )
       ERROR::severe("index out of range");
 
    return MEMORY::fixnum(bvecref(bv, index));
@@ -257,12 +255,12 @@ SEXPR FUNC::bvector_set()
    // syntax: (byte-vector-set! <vector> <index> <value>)
    //
    ArgstackIterator iter;
-   const SEXPR bv      = guard(iter.getarg(), bvecp);
-   const SEXPR bvindex = guard(iter.getarg(), fixnump);
-   const SEXPR bvalue  = guard(iter.getlast(), fixnump);
-   const int   index   = getfixnum(bvindex);
+   auto bv      = guard(iter.getarg(), bvecp);
+   auto bvindex = guard(iter.getarg(), fixnump);
+   auto bvalue  = guard(iter.getlast(), fixnump);
+   const int index = getfixnum(bvindex);
 
-   if ( index < 0 || index >= static_cast<int>(getbveclength(bv)) )
+   if ( index < 0 || index >= getbveclength(bv) )
       ERROR::severe("index out of range");
 
    bvecset( bv, index, getfixnum(bvalue) );
@@ -275,7 +273,7 @@ SEXPR FUNC::bvector_length()
    // syntax: (byte-vector-length <byte-vector>)
    //
    ArgstackIterator iter;
-   const SEXPR v = guard(iter.getlast(), bvecp);
+   auto v = guard(iter.getlast(), bvecp);
    return MEMORY::fixnum(getbveclength(v));
 }
 
@@ -290,7 +288,7 @@ SEXPR FUNC::vector()
    //
    ArgstackIterator iter;
    const int n = argstack.getargc();
-   SEXPR v = MEMORY::vector(n);
+   auto v = MEMORY::vector(n);
 
    for ( int i = 0; i < n; ++i )
       vectorset( v, i, iter.getarg() );
@@ -318,7 +316,7 @@ SEXPR FUNC::vector_length()
    // syntax: (vector-length <vector>)
    //
    ArgstackIterator iter;
-   const SEXPR v = guard(iter.getlast(), vectorp);
+   auto v = guard(iter.getlast(), vectorp);
    return MEMORY::fixnum(getvectorlength(v));
 }
 
@@ -328,11 +326,11 @@ SEXPR FUNC::vector_ref()
    // syntax: (vector-ref <vector> <index>)
    //
    ArgstackIterator iter;
-   const SEXPR v      = guard(iter.getarg(), vectorp);
-   const SEXPR vindex = guard(iter.getlast(), fixnump);
-   const int   index  = getfixnum(vindex);
+   auto v      = guard(iter.getarg(), vectorp);
+   auto vindex = guard(iter.getlast(), fixnump);
+   const int index = getfixnum(vindex);
 
-   if ( index < 0 || index >= static_cast<int>(getvectorlength(v)) )
+   if ( index < 0 || index >= getvectorlength(v) )
       ERROR::severe("index out of range");
 
    return vectorref( v, index );
@@ -344,12 +342,12 @@ SEXPR FUNC::vector_set()
    // syntax: (vector-set! <vector> <index> <value>)
    //
    ArgstackIterator iter;
-   const SEXPR v      = guard(iter.getarg(), vectorp);
-   const SEXPR vindex = guard(iter.getarg(), fixnump);
-   const SEXPR x      = iter.getlast();
-   const int   index  = getfixnum(vindex);
+   auto v      = guard(iter.getarg(), vectorp);
+   auto vindex = guard(iter.getarg(), fixnump);
+   auto x      = iter.getlast();
+   const int index = getfixnum(vindex);
 
-   if ( index < 0 || index >= static_cast<int>(getvectorlength(v)) )
+   if ( index < 0 || index >= getvectorlength(v) )
       ERROR::severe("index out of range");
 
    vectorset( v, index, x );
@@ -362,10 +360,11 @@ SEXPR FUNC::vector_fill()
    // syntax: (vector-fill! <vector> <value>) -> <vector>
    //
    ArgstackIterator iter;
-   const SEXPR v      = guard(iter.getarg(), vectorp);
-   const SEXPR x      = iter.getlast();
+   auto v = guard(iter.getarg(), vectorp);
+   auto x = iter.getlast();
+   const int vlen = getvectorlength(v);
 
-   for ( int i = 0; i < getvectorlength(v); ++i )
+   for ( int i = 0; i < vlen; ++i )
       vectorset( v, i, x );
 
    return v;
@@ -377,35 +376,30 @@ SEXPR FUNC::vector_copy()
    // syntax: (vector-copy! <dest> <dest-start> <src> [<src-start> <src-end>]) -> <dest>
    //
    ArgstackIterator iter;
-   const SEXPR dst   = guard(iter.getarg(), vectorp);
-   const int   dst_s = getfixnum(guard(iter.getarg(), fixnump));
-   const SEXPR src   = guard(iter.getarg(), vectorp);
+   auto dst   = guard(iter.getarg(), vectorp);
+   auto dst_s = getfixnum(guard(iter.getarg(), fixnump));
+   auto src   = guard(iter.getarg(), vectorp);
 
-   if ( dst_s >= static_cast<int>(getvectorlength(dst)) )
+   if ( dst_s >= getvectorlength(dst) )
       ERROR::severe( "dst-start > dst length" );
 
-   int src_s;
-   int src_e;
+   int src_s = 0;
+   int src_e = getvectorlength(src);
 
    if ( iter.more() )
    {
       src_s = getfixnum(guard(iter.getarg(), fixnump));
       src_e = getfixnum(guard(iter.getlast(), fixnump));
 
-      if ( src_s >= static_cast<int>(getvectorlength(src)) )
+      if ( src_s >= getvectorlength(src) )
 	 ERROR::severe( "src-start >= src length" );
-      if ( src_e > static_cast<int>(getvectorlength(src)) )
+      if ( src_e > getvectorlength(src) )
 	 ERROR::severe( "src-end > src length" );  
       if ( src_s >= src_e )
 	 ERROR::severe( "src-start >= src-end" );
    }
-   else
-   {
-      src_s = 0;
-      src_e = getvectorlength(src);
-   }
 
-   if ( dst_s + (src_e - src_s) > static_cast<int>(getvectorlength(dst)) )
+   if ( dst_s + (src_e - src_s) > getvectorlength(dst) )
       ERROR::severe( "dest not large enough for src" );
    
    int i = dst_s;
@@ -421,9 +415,9 @@ SEXPR FUNC::list_to_vector()
    // syntax: (list->vector <list>) -> <vector>
    //
    ArgstackIterator iter;
-   SEXPR list    = guard(iter.getlast(), listp);
+   auto list     = guard(iter.getlast(), listp);
    const int len = list_length(list);
-   SEXPR v = MEMORY::vector(len);
+   auto v        = MEMORY::vector(len);
 
    for ( int i = 0; i < len; ++i, list = cdr(list) )
       vectorset(v, i, car(list));
@@ -437,15 +431,13 @@ SEXPR FUNC::vector_to_list()
    // syntax: (vector->list <vector>) -> <list>
    //
    ArgstackIterator iter;
-   SEXPR v = guard(iter.getlast(), vectorp);
+   auto v = guard(iter.getlast(), vectorp);
    const int len = getvectorlength(v);
 
    regstack.push(null);
 
    for ( int i = len-1; i >= 0; --i )
-   {
       regstack.top() = MEMORY::cons( vectorref(v, i), regstack.top() );
-   }
 
    return regstack.pop();
 }
@@ -512,9 +504,7 @@ bool FUNC::equal( SEXPR e1, SEXPR e2 )
       }
       else if ( consp(e1) )
       {
-	 return consp(e2) && 
-	    equal(car(e1), car(e2)) && 
-	    equal(cdr(e1), cdr(e2));
+	 return consp(e2) && equal(car(e1), car(e2)) && equal(cdr(e1), cdr(e2));
       }
    }
 
@@ -531,8 +521,8 @@ SEXPR FUNC::eq()
    // syntax: (eq? <exp1> <exp2>)
    //
    ArgstackIterator iter;
-   const SEXPR e1 = iter.getarg();
-   const SEXPR e2 = iter.getlast();
+   auto e1 = iter.getarg();
+   auto e2 = iter.getlast();
    return  (e1 == e2) ? symbol_true : symbol_false;
 }
 
@@ -542,8 +532,8 @@ SEXPR FUNC::eqv()
    // syntax: (eqv? <exp1> <exp2>)
    //
    ArgstackIterator iter;
-   const SEXPR e1 = iter.getarg();
-   const SEXPR e2 = iter.getlast();
+   auto e1 = iter.getarg();
+   auto e2 = iter.getlast();
    return eqv(e1, e2) ? symbol_true : symbol_false;
 }
 
@@ -553,8 +543,8 @@ SEXPR FUNC::equal()
    // syntax: (equal? <exp1> <exp2>)
    //
    ArgstackIterator iter;
-   const SEXPR e1 = iter.getarg();
-   const SEXPR e2 = iter.getlast();
+   auto e1 = iter.getarg();
+   auto e2 = iter.getlast();
    return equal(e1, e2) ? symbol_true : symbol_false;
 }
 
@@ -568,7 +558,7 @@ SEXPR FUNC::string_to_symbol()
    // syntax: (string->symbol <str>) -> interned symbol
    //
    ArgstackIterator iter;
-   const SEXPR s = guard(iter.getlast(), stringp);
+   auto s = guard(iter.getlast(), stringp);
    return SYMTAB::enter(getstringdata(s));
 }
 
@@ -578,11 +568,11 @@ SEXPR FUNC::symbol_to_string()
    // syntax: (symbol->string <sym>)
    //
    ArgstackIterator iter;
-   const SEXPR s = guard(iter.getlast(), symbolp);
+   auto s = guard(iter.getlast(), symbolp);
    return MEMORY::string(getname(s));
 }
 
-static auto gensym_number = 0u;
+static unsigned gensym_number = 0;
 
 SEXPR FUNC::gensym()
 {
@@ -595,7 +585,7 @@ SEXPR FUNC::gensym()
 
    if ( iter.more() )
    {
-      const SEXPR arg = iter.getlast();
+      const auto arg = iter.getlast();
 
       if ( symbolp(arg) )
       {
@@ -607,7 +597,7 @@ SEXPR FUNC::gensym()
       }
       else if ( fixnump(arg) )
       {
-	 gensym_number = static_cast<decltype(gensym_number)>(getfixnum(arg));
+	 gensym_number = static_cast<unsigned>(getfixnum(arg));
       }
       else
 	 ERROR::severe("gensym requires [sym|str|fix]");
@@ -615,7 +605,6 @@ SEXPR FUNC::gensym()
 
    char number[80];
    SPRINTF( number, "%u", gensym_number++ );
-
    new_sym += number;
   
    return MEMORY::symbol( new_sym );
@@ -627,7 +616,7 @@ SEXPR FUNC::symbol_value()
    // syntax: (symbol-value <sym-expr>)
    //
    ArgstackIterator iter;
-   const SEXPR s = guard(iter.getlast(), symbolp);
+   auto s = guard(iter.getlast(), symbolp);
    return getvalue(s);
 }
 
@@ -637,8 +626,8 @@ SEXPR FUNC::set_symbol_value()
    // syntax: (set-symbol-value! <sym-expr> <value>)
    //
    ArgstackIterator iter;
-   const SEXPR s = guard(iter.getarg(), symbolp);
-   const SEXPR v = iter.getlast();
+   auto s = guard(iter.getarg(), symbolp);
+   auto v = iter.getlast();
    setvalue(s, v);
    return v;
 }
@@ -649,7 +638,7 @@ SEXPR FUNC::symbol_plist()
    // syntax: (symbol-plist <sym-expr>)
    //
    ArgstackIterator iter;
-   const SEXPR s = guard(iter.getlast(), symbolp);
+   auto s = guard(iter.getlast(), symbolp);
    return getplist(s);
 }
 
@@ -659,8 +648,8 @@ SEXPR FUNC::set_symbol_plist()
    // syntax: (set-symbol-plist! <sym-expr> <plist>)
    //
    ArgstackIterator iter;
-   const SEXPR s = guard(iter.getarg(), symbolp);
-   const SEXPR p = iter.getlast();
+   auto s = guard(iter.getarg(), symbolp);
+   auto p = iter.getlast();
    setplist(s, p);
    return p;
 }
@@ -671,12 +660,11 @@ SEXPR FUNC::get_property()
    // syntax: (get <sym> <prop>)
    //
    ArgstackIterator iter;
-   SEXPR s = guard(iter.getarg(), symbolp);
-   SEXPR p = guard(iter.getlast(), symbolp);
+   auto s = guard(iter.getarg(), symbolp);
+   auto p = guard(iter.getlast(), symbolp);
+   auto plist = getplist(s);
 
-   SEXPR plist = getplist(s);
-
-   while (anyp(plist))
+   while ( anyp(plist) )
    {
       if ( eq( p, car(plist) ) )
 	 return car(cdr(plist));
@@ -692,13 +680,12 @@ SEXPR FUNC::put_property()
    // syntax: (put <sym> <prop> <value>)
    //
    ArgstackIterator iter;
-   SEXPR s = guard(iter.getarg(), symbolp);
-   SEXPR p = guard(iter.getarg(), symbolp);
-   SEXPR v = iter.getlast();
+   auto s = guard(iter.getarg(), symbolp);
+   auto p = guard(iter.getarg(), symbolp);
+   auto v = iter.getlast();
+   auto plist = getplist(s);
 
-   SEXPR plist = getplist(s);
-
-   while (anyp(plist))
+   while ( anyp(plist) )
    {
       if ( eq( p, car(plist) ) )
       {
@@ -709,8 +696,8 @@ SEXPR FUNC::put_property()
    }
   
    // if we got here, then there is no such property
-   regstack.push(MEMORY::cons(v, getplist(s)));  // protect
-   setplist(s, MEMORY::cons(p, regstack.top()));
+   regstack.push( MEMORY::cons(v, getplist(s)) );  // protect
+   setplist( s, MEMORY::cons(p, regstack.top()) );
    regstack.pop();
 
    return p;
@@ -722,7 +709,6 @@ SEXPR FUNC::symbols()
    // syntax: (symbols) -> <vector>
    //
    argstack.noargs();
-
    return SYMTAB::symbols();
 }
 
@@ -739,7 +725,7 @@ SEXPR FUNC::read()
    ArgstackIterator iter;
    if ( iter.more() )
    { 
-      const SEXPR port = guard(iter.getlast(), anyinportp);
+      auto port = guard(iter.getlast(), anyinportp);
       return READER::read(port); 
    }
    else
@@ -754,10 +740,10 @@ SEXPR FUNC::read()
 static SEXPR basic_print( int newline )
 {
    ArgstackIterator iter;
-   const SEXPR s = iter.getarg();
-   const SEXPR port = iter.more() ? guard(iter.getlast(), anyoutportp) : PIO::stdout_port;
-
-   PRINTER::print(port, s);
+   auto s = iter.getarg();
+   auto port = iter.more() ? guard(iter.getlast(), anyoutportp) : PIO::stdout_port;
+   
+   PRINTER::print( port, s );
    if ( newline )
       PRINTER::newline(port);
    return symbol_true;
@@ -772,10 +758,10 @@ SEXPR FUNC::display()
    // syntax: (display <sexpr> [<outport>]) -> #t
    //
    ArgstackIterator iter;
-   const SEXPR s = iter.getarg();
-   const SEXPR port = iter.more() ? guard(iter.getlast(), anyoutportp) : PIO::stdout_port;
+   auto s = iter.getarg();
+   auto port = iter.more() ? guard(iter.getlast(), anyoutportp) : PIO::stdout_port;
 
-   PRINTER::print(port, s, PRINTER::NO_QUOTE);
+   PRINTER::print( port, s, PRINTER::NO_QUOTE );
    return symbol_true;
 }
 
@@ -785,9 +771,9 @@ SEXPR FUNC::newline()
    // syntax: (newline [<outport>]) -> #t
    //
    ArgstackIterator iter;
-   const SEXPR port = iter.more() ? guard(iter.getlast(), anyoutportp) : PIO::stdout_port;
+   auto port = iter.more() ? guard(iter.getlast(), anyoutportp) : PIO::stdout_port;
 
-   PRINTER::newline(port);
+   PRINTER::newline( port );
    return symbol_true;
 }
 
@@ -797,7 +783,7 @@ SEXPR FUNC::read_char()
    // syntax: (read-char [<inport>])
    //
    ArgstackIterator iter;
-   const SEXPR port = (iter.more()) ? guard(iter.getlast(), anyinportp) : PIO::stdin_port;
+   auto port = (iter.more()) ? guard(iter.getlast(), anyinportp) : PIO::stdin_port;
 
    const char ch = PIO::get(port);
    return (ch == EOF) ? PIO::eof_object : MEMORY::character(ch);
@@ -809,11 +795,10 @@ SEXPR FUNC::write_char()
    // syntax: (write-char <sexpr> [<outport>]) -> #t
    //
    ArgstackIterator iter;
-   const char  ch = getcharacter(guard(iter.getarg(), charp));
-   const SEXPR port = (iter.more()) ? guard(iter.getlast(), anyinportp) : PIO::stdout_port;
+   const char ch = getcharacter(guard(iter.getarg(), charp));
+   auto port = (iter.more()) ? guard(iter.getlast(), anyinportp) : PIO::stdout_port;
 
-   PIO::put(port, ch);
-
+   PIO::put( port, ch );
    return symbol_true;
 }
 
@@ -839,7 +824,7 @@ static SEXPR gc_stats()
    regstack.push( MEMORY::vector(N) );
    for ( int i = 0; i < N; ++i )
       vectorset( regstack.top(), i, MEMORY::fixnum( MEMORY::ReclamationCounts[i]) );
-   SEXPR reclamations = regstack.pop();
+   auto reclamations = regstack.pop();
    vectorset( regstack.top(), 3, reclamations );
 #endif
    
@@ -910,8 +895,7 @@ SEXPR FUNC::env_parent()
    // syntax: (environment-parent <env>)
    //
    ArgstackIterator iter;
-   const SEXPR env = guard(iter.getlast(), envp);
-  
+   auto env = guard(iter.getlast(), envp);
    return getenvbase(env);
 }
 
@@ -921,17 +905,17 @@ SEXPR FUNC::env_bindings()
    // syntax: (environment-bindings <env>) -> (<pair1> <pair2> ...)
    //
    ArgstackIterator iter;
-   const SEXPR arg = iter.getlast();
+   const auto arg = iter.getlast();
 
    // treat the empty list of bindings as a null env
-   if (nullp(arg))
+   if ( nullp(arg) )
       return null;
 
-   const SEXPR env = guard(arg, envp);
+   const auto env = guard(arg, envp);
 
    // convert a frame into a list of bindings
-   FRAME frame = getenvframe(env);
-   SEXPR vars = getframevars(frame);
+   const auto frame = getenvframe(env);
+   auto vars = getframevars(frame);
    
    ListBuilder bindings;
 
@@ -952,8 +936,8 @@ SEXPR FUNC::make_environment()
    // syntax: (%make-environment <pairs> <baseenv>)
    //
    ArgstackIterator iter;
-   SEXPR pairs = guard(iter.getarg(), listp);
-   const SEXPR benv = iter.getlast();
+   auto pairs = guard(iter.getarg(), listp);
+   const auto benv = iter.getlast();
 
    if ( !(nullp(benv) || envp(benv)) )
       ERROR::severe( "expected a base environment", benv );
@@ -963,15 +947,14 @@ SEXPR FUNC::make_environment()
 
    // if empty, extend base environment w/ empty frame
 
-   SEXPR env = MEMORY::environment( len, null, benv );
+   const auto env = MEMORY::environment( len, null, benv );
    regstack.push( env );
-
    {
       ListBuilder vars;
       
       for ( int i = 0; anyp(pairs); ++i )
       {
-         SEXPR x = car(pairs);
+         auto x = car(pairs);
          
          if ( consp(x) )
          {
@@ -989,13 +972,10 @@ SEXPR FUNC::make_environment()
          {
             ERROR::severe( "expected a symbol or (symbol . val)", x );
          }
-         
          pairs = cdr(pairs);
       }
-      
       setframevars( getenvframe(env), vars.get() );
    }
-
    return regstack.pop();
 }
 
@@ -1009,21 +989,19 @@ SEXPR FUNC::make_closure()
    // syntax: (%make-closure <code> <params> <env>)
    //
    ArgstackIterator iter;
-   SEXPR code = guard(iter.getarg(), listp);
-   SEXPR params = guard(iter.getarg(), listp);
-   const SEXPR env = iter.getlast();
+   auto code = guard(iter.getarg(), listp);
+   auto params = guard(iter.getarg(), listp);
+   const auto env = iter.getlast();
 
    if ( !(nullp(env) || envp(env)) )
       ERROR::severe( "expected an environment", env );
 
-   SEXPR closure = MEMORY::closure( code, env );
+   const auto closure = MEMORY::closure( code, env );
    regstack.push( closure );
-
    EVAL::parse_formals( params, 
-                           getclosurevars(closure),
-                           getclosurenumv(closure),
-                           getclosurerargs(closure) );
-
+                        getclosurevars(closure),
+                        getclosurenumv(closure),
+                        getclosurerargs(closure) );
    return regstack.pop();
 }
 
@@ -1033,21 +1011,20 @@ SEXPR FUNC::parse_formals()
    // syntax: (%parse-formals <params>)
    //
    ArgstackIterator iter;
-   SEXPR params = iter.getlast();
+   auto params = iter.getlast();
 
-   SEXPR v = MEMORY::vector( 3 );
+   auto v = MEMORY::vector( 3 );
    regstack.push( v );
 
    SEXPR vars;
    BYTE numv;
    BYTE rargs;
-
    EVAL::parse_formals( params, vars, numv, rargs );
 
    vset( v, 0, vars );
    vset( v, 1, MEMORY::fixnum(numv) );
    vset( v, 2, rargs ? symbol_true : symbol_false );
-
+   
    return regstack.pop();
 }
 
@@ -1059,9 +1036,8 @@ SEXPR FUNC::make_code()
    // syntax: (%make-code <bvec> <vec>)
    //
    ArgstackIterator iter;
-   SEXPR bcodes = guard(iter.getarg(), bvecp);
-   SEXPR sexprs = guard(iter.getlast(), vectorp);
-
+   auto bcodes = guard(iter.getarg(), bvecp);
+   auto sexprs = guard(iter.getlast(), vectorp);
    return MEMORY::code( bcodes, sexprs );
 }
 
@@ -1071,8 +1047,7 @@ SEXPR FUNC::get_bcodes()
    // syntax: (%get-bcodes <code>)
    //
    ArgstackIterator iter;
-   SEXPR code = guard(iter.getlast(), codep);
-
+   auto code = guard(iter.getlast(), codep);
    return code_getbcodes(code);
 }
 
@@ -1082,8 +1057,7 @@ SEXPR FUNC::get_sexprs()
    // syntax: (%get-sexprs <code>)
    //
    ArgstackIterator iter;
-   SEXPR code = guard(iter.getlast(), codep);
-
+   auto code = guard(iter.getlast(), codep);
    return code_getsexprs(code);
 }
 
@@ -1102,9 +1076,8 @@ SEXPR FUNC::unix_system()
    // syntax: (system <string>) -> <fixnum>
    //
    ArgstackIterator iter;
-   const SEXPR cmd = guard(iter.getlast(), stringp);
-   const int result = system(getstringdata(cmd));
-   return MEMORY::fixnum( result );
+   auto cmd = guard(iter.getlast(), stringp);
+   return MEMORY::fixnum( system(getstringdata(cmd)) );
 }
 
 SEXPR FUNC::unix_getargs()
@@ -1114,12 +1087,10 @@ SEXPR FUNC::unix_getargs()
    //
    argstack.noargs();
 
-   SEXPR es_argv = MEMORY::vector(unix_argc);
+   const auto es_argv = MEMORY::vector(unix_argc);
    regstack.push(es_argv);
-
    for ( int i = 0; i < unix_argc; ++i )
       vset( es_argv, i, MEMORY::string(unix_argv[i]) );
-
    return regstack.pop();
 }
 
@@ -1129,9 +1100,8 @@ SEXPR FUNC::unix_getenv()
    // syntax: (getenv <var>) -> <string-value>
    //
    ArgstackIterator iter;
-   const SEXPR var = guard(iter.getlast(), stringp);
-   const char* val = ::getenv( getstringdata(var) );
-
+   auto var = guard(iter.getlast(), stringp);
+   auto val = ::getenv( getstringdata(var) );
    return ( val == nullptr ) ? MEMORY::string_null : MEMORY::string(val);
 }
 
@@ -1141,9 +1111,9 @@ SEXPR FUNC::unix_setenv()
    // syntax: (setenv <var> <val> <replace>) -> <fixnum>
    //
    ArgstackIterator iter;
-   const SEXPR var = guard(iter.getarg(), stringp);
-   const SEXPR val = guard(iter.getarg(), stringp);
-   FIXNUM replace = 1;
+   auto var = guard(iter.getarg(), stringp);
+   auto val = guard(iter.getarg(), stringp);
+   int replace = 1;
    if ( iter.more() )
       replace = getfixnum( guard(iter.getlast(), fixnump) );
 
@@ -1159,7 +1129,7 @@ SEXPR FUNC::unix_unsetenv()
    // syntax: (unsetenv <var>) -> <fixnum>
    //
    ArgstackIterator iter;
-   const SEXPR var = guard(iter.getlast(), stringp);
+   auto var = guard(iter.getlast(), stringp);
    const int result = ::unsetenv( getstringdata(var) );
    return MEMORY::fixnum( result );
 }
@@ -1171,7 +1141,7 @@ SEXPR FUNC::unix_gettime()
    //
    argstack.noargs();
 
-   SEXPR time = MEMORY::cons(null, null);
+   auto time = MEMORY::cons(null, null);
    regstack.push( time );
 
    struct timespec ts;
@@ -1189,7 +1159,7 @@ SEXPR FUNC::unix_change_dir()
    // syntax: (chdir <string>) -> <fixnum>
    //
    ArgstackIterator iter;
-   const SEXPR path = guard(iter.getlast(), stringp);
+   auto path = guard(iter.getlast(), stringp);
    const int result = ::chdir( getstringdata(path) );
    return MEMORY::fixnum((FIXNUM)result);
 }
@@ -1201,7 +1171,7 @@ SEXPR FUNC::unix_current_dir()
    //
    argstack.noargs();
    char buffer[200];
-   const char* result = ::getcwd( buffer, sizeof(buffer) );
+   const auto result = ::getcwd( buffer, sizeof(buffer) );
    if ( result == NULL )
       return null;
    else
@@ -1218,7 +1188,7 @@ SEXPR FUNC::open_input_file()
    // syntax: (open-input-file <str>)
    //
    ArgstackIterator iter;
-   const SEXPR fname = guard(iter.getlast(), stringp);
+   auto fname = guard(iter.getlast(), stringp);
    return PIO::open( fname, pm_input, "r" );
 }
 
@@ -1238,7 +1208,7 @@ SEXPR FUNC::open_append_file()
    // syntax: (open-append-file <str>)
    //
    ArgstackIterator iter;
-   const SEXPR fname = guard(iter.getlast(), stringp);
+   auto fname = guard(iter.getlast(), stringp);
    return PIO::open( fname, pm_output, "a" );
 }
 
@@ -1248,7 +1218,7 @@ SEXPR FUNC::open_update_file()
    // syntax: (open-update-file <str>)
    //
    ArgstackIterator iter;
-   const SEXPR fname = guard(iter.getlast(), stringp);
+   auto fname = guard(iter.getlast(), stringp);
    return PIO::open( fname, pm_input|pm_output, "r+" );
 }
 
@@ -1258,8 +1228,8 @@ SEXPR FUNC::close_port()
    // syntax: (close-port <port>) -> #t
    //
    ArgstackIterator iter;
-   const SEXPR port = guard(iter.getlast(), portp);
-   PIO::close(port);
+   auto port = guard(iter.getlast(), portp);
+   PIO::close( port );
    return symbol_true;
 }
 
@@ -1269,8 +1239,8 @@ SEXPR FUNC::close_input_port()
    // syntax: (close-input-port <port>) -> #t
    //
    ArgstackIterator iter;
-   const SEXPR port = guard(iter.getlast(), inportp);
-   PIO::close(port);
+   auto port = guard(iter.getlast(), inportp);
+   PIO::close( port );
    return symbol_true;
 }
 
@@ -1280,8 +1250,8 @@ SEXPR FUNC::close_output_port()
    // syntax: (close-output-port <port>) -> #t
    //
    ArgstackIterator iter;
-   const SEXPR port = guard(iter.getlast(), outportp);
-   PIO::close(port);
+   auto port = guard(iter.getlast(), outportp);
+   PIO::close( port );
    return symbol_true;
 }
 
@@ -1291,9 +1261,9 @@ SEXPR FUNC::set_file_position()
    // syntax: (set-file-position <port> <pos>) -> #t
    //
    ArgstackIterator iter;
-   const SEXPR port = guard(iter.getarg(), portp);
-   const SEXPR pos = guard(iter.getlast(), fixnump);
-   PIO::set_position(port, pos);
+   auto port = guard(iter.getarg(), portp);
+   auto pos = guard(iter.getlast(), fixnump);
+   PIO::set_position( port, pos );
    return symbol_true;
 }
 
@@ -1303,8 +1273,8 @@ SEXPR FUNC::get_file_position()
    // syntax: (get-file-position <port>)
    //
    ArgstackIterator iter;
-   const SEXPR port = guard(iter.getlast(), portp);
-   return PIO::get_position(port);
+   auto port = guard(iter.getlast(), portp);
+   return PIO::get_position( port );
 }
 
 SEXPR FUNC::flush_output_port()
@@ -1315,11 +1285,11 @@ SEXPR FUNC::flush_output_port()
    ArgstackIterator iter;
    if ( iter.more() )
    {
-      const SEXPR port = guard(iter.getlast(), outportp);
-      PIO::flush(port);
+      auto port = guard(iter.getlast(), outportp);
+      PIO::flush( port );
    }
    else
-      PIO::flush(PIO::stdout_port);
+      PIO::flush( PIO::stdout_port );
    return symbol_true;
 }
 
@@ -1333,7 +1303,7 @@ SEXPR FUNC::open_input_string()
    // syntax: (open-input-string <str>)
    //
    ArgstackIterator iter;
-   const SEXPR str = guard(iter.getlast(), stringp);
+   auto str = guard(iter.getlast(), stringp);
    return PIO::open_on_string( str, pm_input );
 }
 
@@ -1343,8 +1313,7 @@ SEXPR FUNC::open_output_string()
    // syntax: (open-output-string)
    //
    argstack.noargs();
-   SEXPR port = PIO::open_on_string( MEMORY::string_null, pm_output );
-   return port;
+   return PIO::open_on_string( MEMORY::string_null, pm_output );
 }
 
 SEXPR FUNC::get_output_string()
@@ -1365,7 +1334,7 @@ SEXPR FUNC::get_output_string()
 SEXPR FUNC::string_length()
 {
    ArgstackIterator iter;
-   const SEXPR s = guard(iter.getlast(), stringp);
+   auto s = guard(iter.getlast(), stringp);
    return MEMORY::fixnum(getstringlength(s));
 }
 
@@ -1392,15 +1361,13 @@ SEXPR FUNC::string_ref()
    // syntax: (string-ref <s> <index>) -> <char>
    //
    ArgstackIterator iter;
-   SEXPR s = guard(iter.getarg(), stringp);
+   auto s = guard(iter.getarg(), stringp);
    const int n = getfixnum(guard(iter.getlast(), fixnump));
 
-   if ( n >= 0 && n < static_cast<int>(getstringlength(s)) )
-      return MEMORY::character(getstringdata(s)[n]);
-   else
+   if ( n < 0 || n >= getstringlength(s) )
       ERROR::severe("index out of string bounds");
-
-   return s;
+      
+   return MEMORY::character(getstringdata(s)[n]);
 }
 
 SEXPR FUNC::string_set()
@@ -1413,11 +1380,10 @@ SEXPR FUNC::string_set()
    const int n = getfixnum(guard(iter.getarg(), fixnump));
    const int ch = getcharacter(guard(iter.getlast(), charp));
 
-   if ( n >= 0 && n < static_cast<int>(getstringlength(s)) )
-      getstringdata(s)[n] = ch;
-   else
+   if ( n < 0 || n >= getstringlength(s) )
       ERROR::severe("index out of string bounds");
-
+      
+   getstringdata(s)[n] = ch;
    return s;
 }
 
@@ -1427,27 +1393,20 @@ SEXPR FUNC::substring()
    // syntax: (substring <s> <start> <end>) -> <string>
    //
    ArgstackIterator iter;
-   SEXPR s = guard(iter.getarg(), stringp);
+   auto s = guard(iter.getarg(), stringp);
    const int start = getfixnum(guard(iter.getarg(), fixnump));
    const int end   = getfixnum(guard(iter.getlast(), fixnump));
 
-   if ( start < static_cast<int>(getstringlength(s)) &&
-        end <= static_cast<int>(getstringlength(s)))
-   {
-      if ( start >= end )
-	 return MEMORY::string_null;
-      else
-      {
-	 const int slen = end - start;
-         std::string ss( &getstringdata(s)[start], slen );
-         return MEMORY::string( ss );
-      }
-   }
-   else
-   {
+   if ( !(start < static_cast<int>(getstringlength(s)) &&
+          end <= static_cast<int>(getstringlength(s))) )
       ERROR::severe("index out of string bounds");
-      return null;
-   }
+
+   if ( start >= end )
+      return MEMORY::string_null;
+   
+   const int slen = end - start;
+   std::string ss( &getstringdata(s)[start], slen );
+   return MEMORY::string( ss );
 }
 
 SEXPR FUNC::string_fill()
@@ -1456,12 +1415,11 @@ SEXPR FUNC::string_fill()
    // syntax: (string-fill! <s> <ch>) -> <string>
    //
    ArgstackIterator iter;
-   SEXPR s = guard(iter.getarg(), stringp);
-   const int ch = getcharacter(guard(iter.getlast(), charp));
+   auto s = guard(iter.getarg(), stringp);
+   const char ch = getcharacter(guard(iter.getlast(), charp));
 
    for ( int i = 0; i < getstringlength(s); ++i )
       getstringdata(s)[i] = ch;
-
    return s;
 }
 
@@ -1478,31 +1436,26 @@ SEXPR FUNC::string_copy()
    const int   dst_s = getfixnum(guard(iter.getarg(), fixnump));
    const SEXPR src   = guard(iter.getarg(), stringp);
 
-   if ( dst_s >= static_cast<int>(getstringlength(dst)) )
+   if ( dst_s >= getstringlength(dst) )
       ERROR::severe( "string dst-start > dst length" );
 
-   int src_s;
-   int src_e;
+   int src_s = 0;
+   int src_e = getstringlength(src);
 
    if ( iter.more() )
    {
       src_s = getfixnum(guard(iter.getarg(), fixnump));
       src_e = getfixnum(guard(iter.getlast(), fixnump));
 
-      if ( src_s >= static_cast<int>(getstringlength(src)) )
+      if ( src_s >= getstringlength(src) )
 	 ERROR::severe( "string src-start >= src length" );
-      if ( src_e > static_cast<int>(getstringlength(src)) )
+      if ( src_e > getstringlength(src) )
 	 ERROR::severe( "string src-end > src length" );  
       if ( src_s >= src_e )
 	 ERROR::severe( "string src-start >= src-end" );
    }
-   else
-   {
-      src_s = 0;
-      src_e = getstringlength(src);
-   }
 
-   if ( dst_s + (src_e - src_s) > static_cast<int>(getstringlength(dst)) )
+   if ( dst_s + (src_e - src_s) > getstringlength(dst) )
       ERROR::severe( "string dest not large enough for src" );
    
    int i = dst_s;
@@ -1518,7 +1471,7 @@ SEXPR FUNC::list_to_string()
    // syntax: (list->string <list-of-chars>) -> <string>
    //
    ArgstackIterator iter;
-   SEXPR list = guard(iter.getarg(), listp);
+   auto list = guard(iter.getarg(), listp);
    const int len = list_length(list);
 
    std::string s;
@@ -1535,7 +1488,7 @@ SEXPR FUNC::string_to_list()
    // syntax: (string->list <string>) -> <list-of-chars>
    //
    ArgstackIterator iter;
-   SEXPR s = guard(iter.getlast(), stringp);
+   auto s = guard(iter.getlast(), stringp);
    const int len = getstringlength(s);
 
    regstack.push(null);
@@ -1558,8 +1511,8 @@ using StrCmpFuncType = int (*)( const char*, const char* );
 static SEXPR string_compare( RelOp op, StrCmpFuncType compare )
 {
    ArgstackIterator iter;
-   const char* s1 = getstringdata(guard(iter.getarg(), stringp));
-   const char* s2 = getstringdata(guard(iter.getlast(), stringp));
+   const auto s1 = getstringdata(guard(iter.getarg(), stringp));
+   const auto s2 = getstringdata(guard(iter.getlast(), stringp));
 
    switch (op)
    {
@@ -1569,10 +1522,7 @@ static SEXPR string_compare( RelOp op, StrCmpFuncType compare )
       case GTop: return (compare(s1, s2) >  0) ? symbol_true : symbol_false;
       case GEop: return (compare(s1, s2) >= 0) ? symbol_true : symbol_false;
       default:
-      {
-	 ERROR::fatal("bad string comparison operator");
-	 return null;
-      }
+	 return ERROR::fatal("bad string comparison operator");
    }
 }
 
@@ -1611,10 +1561,7 @@ static SEXPR char_compare( RelOp op, int ci )
       case GTop: return (c1 >  c2) ? symbol_true : symbol_false;
       case GEop: return (c1 >= c2) ? symbol_true : symbol_false;
       default:
-      {
-	 ERROR::fatal("bad character comparison operator");
-	 return null;
-      }
+	 return ERROR::fatal("bad character comparison operator");
    }
 }
 
@@ -1639,7 +1586,7 @@ SEXPR FUNC::integer_to_string()
    // syntax: (integer->string <fixnum>) -> <string>
    //
    ArgstackIterator iter;
-   const SEXPR s = guard(iter.getlast(), fixnump);
+   auto s = guard(iter.getlast(), fixnump);
 
    char buf[MAX_IMAGE_LENGTH];
    SPRINTF( buf, "%ld", getfixnum(s) );
@@ -1653,8 +1600,8 @@ SEXPR FUNC::string_to_integer()
    // syntax: (string->integer <string>) -> <fixnum>
    //
    ArgstackIterator iter;
-   const SEXPR s = guard(iter.getlast(), stringp);
-   return MEMORY::fixnum( atoi(getstringdata(s)) );
+   auto s = guard(iter.getlast(), stringp);
+   return MEMORY::fixnum( atol(getstringdata(s)) );
 }
 
 //
@@ -1676,7 +1623,6 @@ static SEXPR member_search( bool(*eqtest)(SEXPR, SEXPR), SEXPR exp, SEXPR list )
 {
    while ( anyp(list) && !eqtest( exp, car(list) ) )
       list = cdr(list);
-
    return list;
 }
 
@@ -1686,8 +1632,8 @@ SEXPR FUNC::member()
    // syntax: (member <exp> <list>) -> <exp> or null
    //
    ArgstackIterator iter;
-   const SEXPR exp = iter.getarg();
-   const SEXPR list = guard(iter.getlast(), listp);
+   auto exp = iter.getarg();
+   auto list = guard(iter.getlast(), listp);
    return member_search( equal, exp, list );
 }
 
@@ -1697,8 +1643,8 @@ SEXPR FUNC::memv()
    // syntax: (memv <exp> <list>) -> <exp> or null
    //
    ArgstackIterator iter;
-   const SEXPR exp = iter.getarg();
-   const SEXPR list = guard(iter.getlast(), listp);
+   auto exp = iter.getarg();
+   auto list = guard(iter.getlast(), listp);
    return member_search( eqv, exp, list );
 }
 
@@ -1708,8 +1654,8 @@ SEXPR FUNC::memq()
    // syntax: (memq <exp> <list>) -> <exp> or null
    //
    ArgstackIterator iter;
-   const SEXPR exp = iter.getarg();
-   const SEXPR list = guard(iter.getlast(), listp);
+   auto exp = iter.getarg();
+   auto list = guard(iter.getlast(), listp);
    return member_search( eq, exp, list );
 }
 
@@ -1733,12 +1679,11 @@ static SEXPR assoc_search( bool(*eqtest)(SEXPR, SEXPR), SEXPR exp, SEXPR list )
 {
    while ( anyp(list) )
    {
-      SEXPR x = car(list);
+      auto x = car(list);
       if ( consp(x) && eqtest( exp, car(x) ) )
 	 return x;
       list = cdr(list);
    }
-
    return null;
 }
 
@@ -1748,8 +1693,8 @@ SEXPR FUNC::assoc()
    // syntax: (assoc <exp> <alist>) -> (<exp> . <value>) or null
    //
    ArgstackIterator iter;
-   const SEXPR exp = iter.getarg();
-   const SEXPR list = guard(iter.getlast(), listp);
+   auto exp = iter.getarg();
+   auto list = guard(iter.getlast(), listp);
    return assoc_search( equal, exp, list );
 }
 
@@ -1759,8 +1704,8 @@ SEXPR FUNC::assv()
    // syntax: (assv <exp> <alist>) -> (<exp> . <value>) or null
    //
    ArgstackIterator iter;
-   const SEXPR exp = iter.getarg();
-   const SEXPR list = guard(iter.getlast(), listp);
+   auto exp = iter.getarg();
+   auto list = guard(iter.getlast(), listp);
    return assoc_search( eqv, exp, list );
 }
 
@@ -1770,8 +1715,8 @@ SEXPR FUNC::assq()
    // syntax: (assq <exp> <alist>) -> (<exp> . <value>) or null
    //
    ArgstackIterator iter;
-   const SEXPR exp = iter.getarg();
-   const SEXPR list = guard(iter.getlast(), listp);
+   auto exp = iter.getarg();
+   auto list = guard(iter.getlast(), listp);
    return assoc_search( eq, exp, list );
 }
 
@@ -1804,7 +1749,7 @@ SEXPR FUNC::append()
 
    while ( iter.more() )
    {
-      SEXPR b = guard(iter.getarg(), listp);
+      auto b = guard(iter.getarg(), listp);
 
       while ( anyp(b) )
       {
@@ -1812,7 +1757,6 @@ SEXPR FUNC::append()
 	 b = cdr(b);
       }
    }
-
    return list.get();
 }
 
@@ -1834,17 +1778,15 @@ SEXPR FUNC::reverse()
    // syntax: (reverse <list>) -> <list>
    //
    ArgstackIterator iter;
-   SEXPR list = guard(iter.getlast(), listp);
+   auto list = guard(iter.getlast(), listp);
 
    // protect the structure under construction
    regstack.push(null);
-
    while ( anyp(list) )
    {
       regstack.top() = MEMORY::cons( car(list), regstack.top() );
       list = cdr(list);
    }
-
    return regstack.pop();
 }
 
@@ -1863,11 +1805,10 @@ SEXPR FUNC::last_pair()
    // syntax: (last-pair <list>) -> <pair> or null
    //
    ArgstackIterator iter;
-   SEXPR list = guard(iter.getlast(), listp);
+   auto list = guard(iter.getlast(), listp);
 
    while ( consp(cdr(list)) )
       list = cdr(list);
-
    return list;
 }
 
@@ -1891,8 +1832,8 @@ SEXPR FUNC::list_tail()
    // syntax: (list-tail <list> <n>) -> <list> or null
    //
    ArgstackIterator iter;
-   SEXPR list = guard(iter.getarg(), listp);
-   auto n = getfixnum(guard(iter.getlast(), fixnump));
+   auto list = guard(iter.getarg(), listp);
+   int n = getfixnum(guard(iter.getlast(), fixnump));
   
    if ( n < 0 )
       ERROR::severe("index out of range", list, MEMORY::fixnum(n));
@@ -1902,7 +1843,6 @@ SEXPR FUNC::list_tail()
       n -= 1;
       list = cdr(list);
    }
-
    return list;
 }
 
@@ -1916,7 +1856,7 @@ SEXPR FUNC::closure_code()
    // syntax: (%closure-code <closure>) -> <list>
    //
    ArgstackIterator iter;
-   SEXPR closure = guard(iter.getlast(), closurep);
+   auto closure = guard(iter.getlast(), closurep);
    return getclosurecode(closure);
 }
 
@@ -1928,8 +1868,8 @@ SEXPR FUNC::closure_code_set()
    // syntax: (%closure-code-set! <closure> <code>) -> <closure>
    //
    ArgstackIterator iter;
-   SEXPR closure = guard(iter.getarg(), closurep);
-   SEXPR code = guard(iter.getlast(), codep);
+   auto closure = guard(iter.getarg(), closurep);
+   auto code = guard(iter.getlast(), codep);
    setclosurecode( closure, code );
    return closure;
 }
@@ -1942,7 +1882,7 @@ SEXPR FUNC::closure_benv()
    // syntax: (%closure-benv <closure>) -> <env>
    //
    ArgstackIterator iter;
-   SEXPR closure = guard(iter.getlast(), closurep);
+   auto closure = guard(iter.getlast(), closurep);
    return getclosurebenv(closure);
 }
 
@@ -1952,7 +1892,7 @@ SEXPR FUNC::closure_vars()
    // syntax: (%closure-vars <closure>) -> <list>
    //
    ArgstackIterator iter;
-   SEXPR closure = guard(iter.getlast(), closurep);
+   auto closure = guard(iter.getlast(), closurep);
    return getclosurevars(closure);
 }
 
@@ -1962,7 +1902,7 @@ SEXPR FUNC::closure_numv()
    // syntax: (%closure-numv <closure>) -> <fixnum>
    //
    ArgstackIterator iter;
-   SEXPR closure = guard(iter.getlast(), closurep);
+   auto closure = guard(iter.getlast(), closurep);
    return MEMORY::fixnum(getclosurenumv(closure));
 }
 
@@ -1972,7 +1912,7 @@ SEXPR FUNC::closure_rest()
    // syntax: (%closure-rest <closure>) -> <boolean>
    //
    ArgstackIterator iter;
-   SEXPR closure = guard(iter.getlast(), closurep);
+   auto closure = guard(iter.getlast(), closurep);
    return getclosurerargs(closure) ? symbol_true : symbol_false;
 }
 
@@ -1982,7 +1922,7 @@ SEXPR FUNC::closure_rest()
 SEXPR FUNC::transcript_on()
 {
    ArgstackIterator iter;
-   SEXPR fname = guard(iter.getlast(), stringp);
+   auto fname = guard(iter.getlast(), stringp);
    TRANSCRIPT::on( fname );
    return symbol_true;
 }
@@ -2002,7 +1942,7 @@ SEXPR FUNC::history_add()
    // syntax: (history-add <sexpr>) -> #t
    //
    ArgstackIterator iter;
-   const SEXPR sexpr = iter.getlast();
+   auto sexpr = iter.getlast();
    TIO::history_add( sexpr );
    return symbol_true;
 }
@@ -2033,7 +1973,7 @@ SEXPR FUNC::set_prompt()
    // syntax: (set-prompt <string>) -> #t
    //
    ArgstackIterator iter;
-   const SEXPR str = guard(iter.getlast(), stringp);
+   auto str = guard(iter.getlast(), stringp);
    TIO::set_prompt( getstringdata(str) ); 
    return symbol_true;
 }
@@ -2048,7 +1988,7 @@ SEXPR FUNC::char_alphabeticp()
    // syntax: (char-alphabetic? <char>) -> <boolean>
    //
    ArgstackIterator iter;
-   const SEXPR ch = guard(iter.getlast(), charp);
+   auto ch = guard(iter.getlast(), charp);
    return isalpha(getcharacter(ch)) ? symbol_true : symbol_false;
 }
 
@@ -2058,7 +1998,7 @@ SEXPR FUNC::char_numericp()
    // syntax: (char-numeric? <char>) -> <boolean>
    //
    ArgstackIterator iter;
-   const SEXPR ch = guard(iter.getlast(), charp);
+   auto ch = guard(iter.getlast(), charp);
    return isdigit(getcharacter(ch)) ? symbol_true : symbol_false;
 }
 
@@ -2068,7 +2008,7 @@ SEXPR FUNC::char_whitespacep()
    // syntax: (char-whitespace? <char>) -> <boolean>
    //
    ArgstackIterator iter;
-   const SEXPR ch = guard(iter.getlast(), charp);
+   auto ch = guard(iter.getlast(), charp);
    return isspace(getcharacter(ch)) ? symbol_true : symbol_false;
 }
 
@@ -2088,7 +2028,7 @@ SEXPR FUNC::char_lower_casep()
    // syntax: (char-lower-case? <char>) -> <boolean>
    //
    ArgstackIterator iter;
-   const SEXPR ch = guard(iter.getlast(), charp);
+   auto ch = guard(iter.getlast(), charp);
    return islower(getcharacter(ch)) ? symbol_true : symbol_false;
 }
 
@@ -2098,7 +2038,7 @@ SEXPR FUNC::char_upcase()
    // syntax: (char-upcase <char>) -> <char>
    //
    ArgstackIterator iter;
-   const SEXPR ch = guard(iter.getlast(), charp);
+   auto ch = guard(iter.getlast(), charp);
    return MEMORY::character(toupper(getcharacter(ch)));
 }
 
@@ -2108,7 +2048,7 @@ SEXPR FUNC::char_downcase()
    // syntax: (char-downcase <char>) -> <char>
    //
    ArgstackIterator iter;
-   const SEXPR ch = guard(iter.getlast(), charp);
+   auto ch = guard(iter.getlast(), charp);
    return MEMORY::character(tolower(getcharacter(ch)));
 }
 
@@ -2128,7 +2068,7 @@ SEXPR FUNC::integer_to_char()
    // syntax: (integer->char <integer>) -> <char>
    //
    ArgstackIterator iter;
-   const SEXPR num = guard(iter.getlast(), fixnump);
+   auto num = guard(iter.getlast(), fixnump);
    return MEMORY::character( static_cast<CHAR>(getfixnum(num)) );
 }
 
@@ -2138,7 +2078,7 @@ SEXPR FUNC::objaddr()
    // syntax: (%object-address <object>) -> <fixnum>
    //
    ArgstackIterator iter;
-   const SEXPR obj = iter.getlast();
+   auto obj = iter.getlast();
    return MEMORY::fixnum( reinterpret_cast<FIXNUM>(obj) );
 }
 
@@ -2149,9 +2089,8 @@ SEXPR FUNC::objaddr()
 SEXPR FUNC::find()
 {
    ArgstackIterator iter;
-
-   SEXPR s1 = guard(iter.getarg(), stringp);
-   SEXPR ss = guard(iter.getlast(), stringp);
+   auto s1 = guard(iter.getarg(), stringp);
+   auto ss = guard(iter.getlast(), stringp);
 
    auto pos = ::strstr( getstringdata(s1), getstringdata(ss) );
 
@@ -2161,7 +2100,7 @@ SEXPR FUNC::find()
    }
    else
    {
-      const auto offset = pos - getstringdata(s1);
+      auto offset = pos - getstringdata(s1);
       return MEMORY::fixnum( reinterpret_cast<FIXNUM>(offset) );
    }
 }
