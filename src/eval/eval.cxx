@@ -2,7 +2,9 @@
 
 #include <cstdlib>
 
+#ifdef BYTE_CODE_EVALUATOR
 #include "code.hxx"
+#endif
 
 #include "core/error.hxx"
 #include "core/symtab.hxx"
@@ -25,13 +27,14 @@ EVSTATE EVAL::cont;
 EVSTATE EVAL::next;
 SEXPR EVAL::theGlobalEnv;
 
+#ifdef BYTE_CODE_EVALUATOR
 int EVAL::pc;
-
 SEXPR EVAL::map_code;
 SEXPR EVAL::for_code;
 SEXPR EVAL::rte_code;
 SEXPR EVAL::rtc_code;
 SEXPR EVAL::fep_code;
+#endif
 
 //
 // New: A frame-based representation
@@ -56,7 +59,7 @@ SEXPR EVAL::lookup( SEXPR var, SEXPR env )
       FRAME frame = getenvframe(env);
       SEXPR vars = getframevars(frame);
       
-      for ( int i = 0; anyp(vars); ++i, vars = getcdr(vars) )
+      for ( int i = 0; i < getframenslots(frame); ++i, vars = getcdr(vars) )
       {
          if ( getcar(vars) == var ) 
             return frameref(frame, i);
@@ -82,7 +85,7 @@ void EVAL::set_variable_value( SEXPR var, SEXPR val, SEXPR env )
       FRAME frame = getenvframe(env);  
       SEXPR vars = getframevars(frame);
 
-      for ( int i = 0; anyp(vars); ++i, vars = getcdr(vars) )
+      for ( int i = 0; i < getframenslots(frame); ++i, vars = getcdr(vars) )
       {
          if ( getcar(vars) == var )
          {
@@ -93,7 +96,7 @@ void EVAL::set_variable_value( SEXPR var, SEXPR val, SEXPR env )
    }
 
    // global var
-   set(var, val);
+   set( var, val );
 }
 
 //
@@ -264,6 +267,100 @@ SEXPR EVAL::get_evaluator_state()
    return evs;
 }
 
+//
+// continuations
+//
+
+// the number of single entries in the continuation
+//   these precede the stack contents
+const int ContSingletons = 3;
+
+// the number of byte vector locations reserved for saved int values
+const int BvReserved = 4;
+
+SEXPR EVAL::create_continuation()
+{
+   const int regs_depth = regstack.getdepth();
+   const int args_depth = argstack.getdepth();
+   const int ints_depth = intstack.getdepth();
+   const int state_len = ContSingletons + regs_depth + args_depth;
+
+   regstack.push( MEMORY::continuation() );
+   cont_setstate( regstack.top(), MEMORY::vector(state_len) );
+   
+   // byte vector includes the intstack and the three(3) stack depth values
+   const int ByteVectorLength = ints_depth + BvReserved;
+   auto bv = MEMORY::byte_vector( ByteVectorLength*sizeof(INT16) );
+   
+   INT16* pint16 = reinterpret_cast<INT16*>(getbvecdata(bv));
+
+   pint16[0] = regs_depth;
+   pint16[1] = args_depth;
+   pint16[2] = ints_depth;
+#ifdef BYTE_CODE_EVALUATOR
+   pint16[3] = pc;
+#endif
+
+   // no additional allocations
+   auto state = cont_getstate( regstack.top() );
+
+   vectorset( state, 0, env );
+   vectorset( state, 1, unev );
+   vectorset( state, 2, bv );
+   
+   int j = ContSingletons;
+
+   for ( int i = 0; i < regs_depth; ++i )
+      vectorset( state, j++, regstack[i] );
+   
+   for ( int i = 0; i < args_depth; ++i )
+      vectorset( state, j++, argstack[i] ); 
+   
+   for ( int i = 0; i < ints_depth; ++i )
+      pint16[BvReserved+i] = intstack[i];
+   
+   return regstack.pop();
+}
+
+void EVAL::restore_continuation( SEXPR cc )
+{
+   // no allocations
+   
+   auto state = cont_getstate( cc );
+
+   env = vectorref( state, 0 );
+   unev = vectorref( state, 1 );
+   auto bv = vectorref( state, 2 );
+
+   const INT16* pint16 = reinterpret_cast<INT16*>(getbvecdata(bv));
+
+   const int regs_depth = pint16[0];
+   const int args_depth = pint16[1];
+   const int ints_depth = pint16[2];
+#ifdef BYTE_CODE_EVALUATOR
+   pc                   = pint16[3];
+#endif
+
+   int j = ContSingletons;
+   
+   for ( int i = 0; i < regs_depth; ++i )
+      regstack[i] = vectorref( state, j++ );
+   
+   for ( int i = 0; i < args_depth; ++i )
+      argstack[i] = vectorref( state, j++ );
+      
+   for ( int i = 0; i < ints_depth; ++i )
+      intstack[i] = pint16[BvReserved+i];
+   
+   regstack.newtop( regs_depth );
+   argstack.newtop( args_depth );
+   intstack.newtop( ints_depth );
+}
+
+//
+// initialization
+//
+
 static void eval_marker()
 {
    // mark the evaluator objects
@@ -274,11 +371,13 @@ static void eval_marker()
    MEMORY::mark( EVAL::aux );
    MEMORY::mark( EVAL::val );
    MEMORY::mark( EVAL::unev );
+#ifdef BYTE_CODE_EVALUATOR
    MEMORY::mark( EVAL::map_code );
    MEMORY::mark( EVAL::for_code );
    MEMORY::mark( EVAL::rte_code );
    MEMORY::mark( EVAL::rtc_code );
    MEMORY::mark( EVAL::fep_code );
+#endif
 }
 
 void EVAL::initialize()
@@ -289,12 +388,12 @@ void EVAL::initialize()
    val = null;
    aux = null;
    unev = null;
-
    cont = EV_DONE;
    next = EV_DONE;
-
    theGlobalEnv = null;
+#ifdef BYTE_CODE_EVALUATOR
    pc = 0;
+#endif
 
    // set the special form dispatch value
    setform( symbol_quote,    EV_QUOTE );
@@ -314,6 +413,7 @@ void EVAL::initialize()
    setform( symbol_access,   EV_ACCESS );
    setform( null,            EV_APPLICATION );
 
+#ifdef BYTE_CODE_EVALUATOR
    //
    // create code fragments
    //
@@ -342,7 +442,6 @@ void EVAL::initialize()
    bvecset( fep_bcodes, 1, OP_GOTO_CONT );
 
    auto vector_null = MEMORY::vector(0);
-   
    map_code = MEMORY::code( map_bcodes, vector_null );
    for_code = MEMORY::code( for_bcodes, vector_null );
    rte_code = MEMORY::code( rte_bcodes, vector_null );
@@ -354,6 +453,7 @@ void EVAL::initialize()
    SYMTAB::enter( "%%rte-code", rte_code );
    SYMTAB::enter( "%%rtc-code", rtc_code );
    SYMTAB::enter( "%%fep-code", fep_code );
+#endif
 
    MEMORY::register_marker( eval_marker );
 }

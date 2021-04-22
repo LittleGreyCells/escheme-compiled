@@ -64,8 +64,10 @@ enum EVSTATE
    EV_FOR_APPLY,
    EV_DELAY,
    EV_FORCE_VALUE,
+#ifdef BYTE_CODE_EVALUATOR
    EVAL_CODE,
    EVAL_RETURN,
+#endif
    EV_DONE,
    EV_SIZE
 };
@@ -80,21 +82,24 @@ namespace EVAL
    extern SEXPR unev;
    extern EVSTATE cont;
    extern EVSTATE next;
-   extern int pc;
-
    extern SEXPR theGlobalEnv;
 
+#ifdef BYTE_CODE_EVALUATOR
+   extern int pc;
    extern SEXPR map_code;
    extern SEXPR for_code;
    extern SEXPR rte_code;
    extern SEXPR rtc_code;
    extern SEXPR fep_code;
+#endif
 
    void initialize();
   
    SEXPR eceval( SEXPR sexpr );
+#ifdef BYTE_CODE_EVALUATOR
    void bceval();
    void bceval( SEXPR sexpr );
+#endif
 
    inline SEXPR the_environment() { return env; }
 
@@ -121,6 +126,7 @@ inline void restore( EVSTATE& x ) { x = EVSTATE( intstack.pop() ); }
 inline void restore( int& x ) { x = intstack.pop(); }
 inline void restore( SEXPR& x ) { x = regstack.pop(); }
 
+#ifdef BYTE_CODE_EVALUATOR
 //
 // Save and Restore the Byte Code Evaluator Registers
 //
@@ -152,6 +158,7 @@ inline void SAVE_RTC()
    save( EVAL::rtc_code );
    save( 0 );
 }
+#endif
 
 }
 

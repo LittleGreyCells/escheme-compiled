@@ -21,7 +21,10 @@ SEXPR EVAL::eceval( SEXPR sexpr )
    // integer valued
    cont = EV_DONE;
    next = EVAL_DISPATCH;
+   
+#ifdef BYTE_CODE_EVALUATOR
    pc   = 0;
+#endif
 
    //
    // When analyzing forms *always* use the type-safe accessors:
@@ -34,6 +37,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
    {
       switch ( next )
       {
+#ifdef BYTE_CODE_EVALUATOR
 	 case EVAL_RETURN:
 	    RESTORE_BCE_REGISTERS();
 	    bceval();
@@ -42,7 +46,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 case EVAL_CODE:
 	    bceval();
 	    break;
-
+#endif
 	 case EVAL_DISPATCH:
 	 {
             //
@@ -54,7 +58,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    {
 	       case n_symbol:
 	       {
-		  val = lookup(exp, env);
+		  val = lookup( exp, env );
 		  next = cont;
 		  break;
 	       }
@@ -66,18 +70,19 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 		  break;
 	       }
 
+#ifdef BYTE_CODE_EVALUATOR
 	       case n_code:
 	       {
 		  // compiled code evaluation
 		  //   compiled code expects to exit with goto-cont
-		  save(cont);
+		  save( cont );
 		  unev = exp;
 		  pc = 0;
 		  next = EVAL_CODE;
 		  SAVE_RTE();
 		  break;
 	       }
-
+#endif
 	       default:
 	       {
 		  // self evaluating
@@ -113,11 +118,11 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 //
 	 case EV_APPLICATION:
 	 {
-	    save(cont);
+	    save( cont );
 	    unev = cdr(exp);      // args
 	    exp = car(exp);       // callable
-	    save(env);
-	    save(unev);
+	    save( env );
+	    save( unev );
 	    cont = EVAL_ARGS;
 	    next = EVAL_DISPATCH;
 	    break;
@@ -125,8 +130,8 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    
 	 case EVAL_ARGS:
 	 {
-	    restore(unev);
-	    restore(env);
+	    restore( unev );
+	    restore( env );
 	    argstack.argc = 0;
 	    if ( nullp(unev) )
 	    {
@@ -134,7 +139,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    }
 	    else
 	    {
-	       save(val);
+	       save( val );
 	       next = EVAL_ARG_LOOP;
 	    }
 	    break;
@@ -145,15 +150,15 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    exp = car(unev);
 	    if ( _lastp(unev) )
 	    {
-	       save(argstack.argc);
+	       save( argstack.argc );
 	       cont = ACCUMULATE_LAST_ARG;
 	       next = EVAL_DISPATCH;
 	    }
 	    else
 	    {
-	       save(argstack.argc);
-	       save(env);
-	       save(unev);
+	       save( argstack.argc );
+	       save( env );
+	       save( unev );
 	       cont = ACCUMULATE_ARG;
 	       next = EVAL_DISPATCH;
 	    }
@@ -162,9 +167,9 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    
 	 case ACCUMULATE_ARG:
 	 {
-	    restore(unev);
-	    restore(env);
-	    restore(argstack.argc);
+	    restore( unev );
+	    restore( env );
+	    restore( argstack.argc );
 	    argstack.push(val);
 	    unev = cdr(unev);
 	    next = EVAL_ARG_LOOP;
@@ -173,9 +178,9 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 
 	 case ACCUMULATE_LAST_ARG:
 	 {
-	    restore(argstack.argc);
+	    restore( argstack.argc );
 	    argstack.push(val);
-	    restore(val);               // restore FUN
+	    restore( val );               // restore FUN
 	    next = APPLY_DISPATCH;
 	    break;
 	 }
@@ -204,11 +209,11 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 		  catch ( ERROR::SevereError& )
 		  {
 		     PRINTER::print( val );
-		     printf( "\n" );
+		     PRINTER::newline();
 		     throw;
 		  }
 		  argstack.removeargc();
-		  restore(cont);
+		  restore( cont );
 		  next = cont;
 		  break;
 	       }
@@ -217,6 +222,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	       {
 		  env = extend_env_fun(val);
 		  unev = getclosurecode(val);
+#ifdef BYTE_CODE_EVALUATOR
 		  if ( _codep(unev) )
 		  {
 		     pc = 0;
@@ -227,6 +233,9 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 		  {
 		     next = EVAL_SEQUENCE;
 		  }
+#else
+		  next = EVAL_SEQUENCE;
+#endif
 		  break;
 	       }
 
@@ -237,7 +246,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 		  auto args = guard(iter.getlast(), listp);
 		  argstack.removeargc();
 		  for ( ; anyp(args); args = cdr(args) )
-		     argstack.push(car(args));
+		     argstack.push( car(args) );
 		  next = APPLY_DISPATCH;
 		  break;
 	       }
@@ -257,7 +266,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 		     env = theGlobalEnv;
 		  }
 		  argstack.removeargc();
-		  restore(cont);
+		  restore( cont );
 		  next = EVAL_DISPATCH;
 		  break;
 	       }
@@ -279,6 +288,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 		  argstack.removeargc();
 		  restore_continuation(val);
 		  val = ccresult;
+#ifdef BYTE_CODE_EVALUATOR
 		  // determine if the continuation should resume here or in the BCE
 		  if ( _codep( regstack.top() ) )
 		  {
@@ -286,9 +296,13 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 		  }
 		  else
 		  {
-		     restore(cont);
+		     restore( cont );
 		     next = cont;
 		  }
+#else
+		  restore( cont );
+		  next = cont;
+#endif
 		  break;
 	       }
 
@@ -321,7 +335,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 		  {
 		     // already forced
 		     val = promise_getval(promise);
-		     restore(cont);
+		     restore( cont );
 		     next = cont;   
 		  }
 		  else
@@ -350,7 +364,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    restore( exp );
 	    promise_setexp(exp, null);
 	    promise_setval(exp, val);
-	    restore(cont);
+	    restore( cont );
 	    next = cont;
 	    break;
 	 }
@@ -452,7 +466,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 //
 	 case EV_BEGIN:
 	 {
-	    save(cont);
+	    save( cont );
 	    unev = cdr(exp);
 	    next = EVAL_SEQUENCE;
 	    break;
@@ -466,13 +480,13 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    exp = car(unev);
 	    if ( nullp(unev) || _lastp(unev) )
 	    {
-	       restore(cont);
+	       restore( cont );
 	       next = EVAL_DISPATCH;
 	    }
 	    else
 	    {
-	       save(unev);
-	       save(env);
+	       save( unev );
+	       save( env );
 	       cont = EVAL_SEQUENCE_BODY;
 	       next = EVAL_DISPATCH;
 	    }
@@ -481,8 +495,8 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    
 	 case EVAL_SEQUENCE_BODY:
 	 {
-	    restore(env);
-	    restore(unev);
+	    restore( env );
+	    restore( unev );
 	    unev = cdr(unev);
 	    next = EVAL_SEQUENCE;
 	    break;
@@ -493,21 +507,21 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 //
 	 case EV_WHILE:
 	 {
-	    save(cont);
-	    unev = cdr(exp);                      // (<cond> <sequence>)
-	    save(env);                        // prep for cond eval
-	    save(unev);
+	    save( cont );
+	    unev = cdr(exp);                  // (<cond> <sequence>)
+	    save( env );                      // prep for cond eval
+	    save( unev );
 	    next = EVAL_WHILE_COND;
 	    break;
 	 }
   
 	 case EVAL_WHILE_COND:
 	 {
-	    restore(unev);                    // FETCH <cond> evaluation context
-	    restore(env);                     // 
-	    exp = car(unev);                      // exp = <cond>
-	    save(env);                        // SAVE the <cond> evaluation context
-	    save(unev);                       // (<sequence>)
+	    restore( unev );                    // FETCH <cond> evaluation context
+	    restore( env );                     // 
+	    exp = car(unev);                    // exp = <cond>
+	    save( env );                        // SAVE the <cond> evaluation context
+	    save( unev );                       // (<sequence>)
 	    cont = EVAL_WHILE_BODY;
 	    next = EVAL_DISPATCH;
 	    break;
@@ -515,19 +529,19 @@ SEXPR EVAL::eceval( SEXPR sexpr )
   
 	 case EVAL_WHILE_BODY:
 	 {
-	    restore(unev);                    // (<cond> <sequence>)
-	    restore(env);                     // RESTORE cond evaluation context
+	    restore( unev );                    // (<cond> <sequence>)
+	    restore( env );                     // RESTORE cond evaluation context
 	    if ( truep(val) )
 	    {
-	       save(env);                     // SAVE the cond evaluation ENV
-	       save(unev);                    // save (<cond> <sequence>)
+	       save( env );                     // SAVE the cond evaluation ENV
+	       save( unev );                    // save (<cond> <sequence>)
 	       exp = cdr(unev);
-	       save(EVAL_WHILE_COND);         // setup EVAL_SEQUENCE to return above
+	       save( EVAL_WHILE_COND );         // setup EVAL_SEQUENCE to return above
 	       next = EVAL_SEQUENCE;
 	    }
 	    else
 	    {
-	       restore(cont);
+	       restore( cont );
 	       next = cont;
 	    }
 	    break;
@@ -547,19 +561,19 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	       // (<var> <exp>)
 	       exp = car(cdr(unev));             // <exp>
 	       unev = var_exp;                   // unev == <var>
-	       save(unev);
-	       save(env);
-	       save(cont);
+	       save( unev );
+	       save( env );
+	       save( cont );
 	       cont = EV_SET_VALUE;
 	       next = EVAL_DISPATCH;
 	    }
-	    else if (_consp(var_exp) && getcar(var_exp) == symbol_access)
+	    else if ( _consp(var_exp) && getcar(var_exp) == symbol_access )
 	    {
 	       // ((access <var> <env2>) <exp>)
 	       exp = car(cdr(cdr(var_exp)));     // exp = <env2>
-	       save(cont);
-	       save(unev);
-	       save(env);
+	       save( cont );
+	       save( unev );
+	       save( env );
 	       cont = EV_SETACCESS_ENV;
 	       next = EVAL_DISPATCH;             // evaluate <env2>
 	    }
@@ -570,9 +584,9 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 
 	 case EV_SET_VALUE:
 	 {
-	    restore(cont);
-	    restore(env);
-	    restore(unev);
+	    restore( cont );
+	    restore( env );
+	    restore( unev );
 	    set_variable_value( unev, val, env );
 	    next = cont;
 	    break;
@@ -580,24 +594,24 @@ SEXPR EVAL::eceval( SEXPR sexpr )
   
 	 case EV_SETACCESS_ENV:
 	 {
-	    restore(env);
-	    restore(unev);                   // unev == ((access <var> <env2>) <exp>)
-	    exp = car(cdr(unev));                // exp = <exp>
-	    unev = car(cdr(car(unev)));          // unev = <var>
-	    save(val);                       // save(eval(<env2>))
-	    save(unev);                      // save(<var>)
-	    save(env);                       // save(<env>)
-	    cont = EV_SETACCESS_VALUE;           // evaluate <exp>
+	    restore( env );
+	    restore( unev );                   // unev == ((access <var> <env2>) <exp>)
+	    exp = car(cdr(unev));              // exp = <exp>
+	    unev = car(cdr(car(unev)));        // unev = <var>
+	    save( val );                       // save(eval(<env2>))
+	    save( unev );                      // save(<var>)
+	    save( env );                       // save(<env>)
+	    cont = EV_SETACCESS_VALUE;         // evaluate <exp>
 	    next = EVAL_DISPATCH;
 	    break;
 	 }
     
 	 case EV_SETACCESS_VALUE:
 	 {
-	    restore(env);                    // restore(<env>)
-	    restore(unev);                   // restore(<var>)
-	    restore(exp);                    // restore(eval(<env2>))
-	    restore(cont);
+	    restore( env );                    // restore(<env>)
+	    restore( unev );                   // restore(<var>)
+	    restore( exp );                    // restore(eval(<env2>))
+	    restore( cont );
 	    set_variable_value( unev, val, exp );
 	    next = cont;
 	    break;
@@ -611,9 +625,9 @@ SEXPR EVAL::eceval( SEXPR sexpr )
             const auto cdr_exp = cdr(exp);
             unev = car(cdr_exp);      // <symbol>
             exp = car(cdr(cdr_exp));  // <env>
-	    save(unev);
-	    save(env);
-	    save(cont);
+	    save( unev );
+	    save( env );
+	    save( cont );
 	    cont = EV_ACCESS_VALUE;
 	    next = EVAL_DISPATCH;
 	    break;
@@ -621,10 +635,10 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 
 	 case EV_ACCESS_VALUE:
 	 {
-	    restore(cont);
-	    restore(env);
-	    restore(unev);
-	    val = lookup(unev, val);   // unev=symbol, val=env
+	    restore( cont );
+	    restore( env );
+	    restore( unev );
+	    val = lookup( unev, val );   // unev=symbol, val=env
 	    next = cont;
 	    break;
 	 }
@@ -643,9 +657,9 @@ SEXPR EVAL::eceval( SEXPR sexpr )
                 // (define <var> <exp>)
                 unev = cadr_exp;
                 exp = car(cdr(cdr_exp));
-                save(unev);
-                save(env);
-                save(cont);
+                save( unev );
+                save( env );
+                save( cont );
                 cont = EV_DEFINE_VALUE;
                 next = EVAL_DISPATCH;
             }
@@ -653,9 +667,9 @@ SEXPR EVAL::eceval( SEXPR sexpr )
             {
                 // (define (<var> [<param>...]) [<exp> ...])
                 unev = car(cadr_exp);                 // <var>
-                save(unev);
-                save(env);
-                save(cont);
+                save( unev );
+                save( env );
+                save( cont );
                 // perform accelerated lambda creation
                 unev = cdr(cadr_exp);             // params: ([<param>...])
                 exp = cdr(cdr_exp);               // code: ([<exp>...])
@@ -673,10 +687,10 @@ SEXPR EVAL::eceval( SEXPR sexpr )
   
 	 case EV_DEFINE_VALUE:
 	 {
-	    restore(cont);
-	    restore(env);
-	    restore(unev);
-	    if (nullp(env))
+	    restore( cont );
+	    restore( env );
+	    restore( unev );
+	    if ( nullp(env) )
 	    {
 	       // set in the global environment [()]
 	       set( unev, val );
@@ -712,7 +726,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 //
 	 case EV_COND:
 	 {
-	    save(cont);
+	    save( cont );
 	    unev = cdr(exp);
 	    cont = EVCOND_DECIDE;
 	    next = EVCOND_PRED;
@@ -723,7 +737,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 {
 	    if ( nullp(unev) )
 	    {
-	       restore(cont);
+	       restore( cont );
 	       val = null;
 	       next = cont;
 	    }
@@ -737,8 +751,8 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	       }
 	       else
 	       { 
-		  save(env);
-		  save(unev);
+		  save( env );
+		  save( unev );
 		  exp = car(exp);
 		  cont = EVCOND_DECIDE;
 		  next = EVAL_DISPATCH;
@@ -749,8 +763,8 @@ SEXPR EVAL::eceval( SEXPR sexpr )
   
 	 case EVCOND_DECIDE:
 	 {
-	    restore(unev);
-	    restore(env);
+	    restore( unev );
+	    restore( env );
 	    if ( truep(val) )
 	    {
 	       exp = car(unev);
@@ -770,22 +784,22 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 //
 	 case EV_IF:
 	 {
-	    save(cont);
+	    save( cont );
 	    cont = EVIF_DECIDE;
 	    unev = cdr(exp);
 	    exp = car(unev);
 	    unev = cdr(unev);
-	    save(env);
-	    save(unev);
+	    save( env );
+	    save( unev );
 	    next = EVAL_DISPATCH;
 	    break;
 	 }
   
 	 case EVIF_DECIDE:
 	 {
-	    restore(unev);
-	    restore(env);
-	    restore(cont);
+	    restore( unev );
+	    restore( env );
+	    restore( cont );
 	    exp = truep(val) ? car(unev) : car(cdr(unev));
 	    next = EVAL_DISPATCH;
 	    break;
@@ -796,7 +810,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 //
 	 case EV_AND:
 	 {
-	    save(cont);
+	    save( cont );
 	    unev = cdr(exp);
 	    next = EVAL_ANDSEQ;
 	    break;
@@ -807,13 +821,13 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    exp = car(unev);
 	    if ( nullp(unev) || _lastp(unev) )
 	    {
-	       restore(cont);
+	       restore( cont );
 	       next = EVAL_DISPATCH;
 	    }
 	    else
 	    {
-	       save(unev);
-	       save(env);
+	       save( unev );
+	       save( env );
 	       cont = EVAL_ANDSEQ_FORK;
 	       next = EVAL_DISPATCH;
 	    }
@@ -822,11 +836,11 @@ SEXPR EVAL::eceval( SEXPR sexpr )
   
 	 case EVAL_ANDSEQ_FORK:
 	 {
-	    restore(env);
-	    restore(unev);
+	    restore( env );
+	    restore( unev );
 	    if ( falsep(val) )
 	    {
-	       restore(cont);
+	       restore( cont );
 	       next = cont;
 	    }
 	    else
@@ -842,7 +856,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 //
 	 case EV_OR:
 	 {
-	    save(cont);
+	    save( cont );
 	    unev = cdr(exp);
 	    next = EVAL_ORSEQ;
 	    break;
@@ -851,15 +865,15 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 case EVAL_ORSEQ:
 	 {
 	    exp = car(unev);
-	    if (nullp(unev) || _lastp(unev))
+	    if ( nullp(unev) || _lastp(unev) )
 	    {
-	       restore(cont);
+	       restore( cont );
 	       next = EVAL_DISPATCH;
 	    }
 	    else
 	    {
-	       save(unev);
-	       save(env);
+	       save( unev );
+	       save( env );
 	       cont = EVAL_ORSEQ_FORK;
 	       next = EVAL_DISPATCH;
 	    }
@@ -868,11 +882,11 @@ SEXPR EVAL::eceval( SEXPR sexpr )
   
 	 case EVAL_ORSEQ_FORK:
 	 {
-	    restore(env);
-	    restore(unev);
+	    restore( env );
+	    restore( unev );
 	    if ( truep(val) )
 	    {
-	       restore(cont);
+	       restore( cont );
 	       next = cont;
 	    }
 	    else
@@ -894,10 +908,10 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 case EV_LET:
 	 case EV_LETREC:
 	 {
-	    save(cont);
+	    save( cont );
 	    exp = cdr(exp);
-	    unev = car(exp);                          // bindings; ((v1 e1) (v2 e2) ...)
-	    exp = cdr(exp);                           // body: (<body>)       
+	    unev = car(exp);                      // bindings; ((v1 e1) (v2 e2) ...)
+	    exp = cdr(exp);                       // body: (<body>)       
 	    save( exp );                          // save the body
 	    save( extend_env_vars( unev, env ) ); // save xenv
             // no additional allocations
@@ -923,15 +937,15 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	    }
 	    if ( _lastp(unev) )
 	    {
-	       save(frameindex);
+	       save( frameindex );
 	       cont = EV_LET_ACCUM_LAST_ARG;
 	       next = EVAL_DISPATCH;
 	    }
 	    else
 	    {
-	       save(frameindex);
-	       save(env);
-	       save(unev);
+	       save( frameindex );
+	       save( env );
+	       save( unev );
 	       cont = EV_LET_ACCUM_ARG;
 	       next = EVAL_DISPATCH;
 	    }  
@@ -940,9 +954,9 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 
 	 case EV_LET_ACCUM_ARG:
 	 {
-	    restore(unev);
-	    restore(env);
-	    restore(frameindex);
+	    restore( unev );
+	    restore( env );
+	    restore( frameindex );
 	    if ( envp(regstack.top()) )
 	       frameset( getenvframe(regstack.top()), frameindex, val );
 	    frameindex += 1;
@@ -953,7 +967,7 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 
 	 case EV_LET_ACCUM_LAST_ARG:
 	 {
-	    restore(frameindex);
+	    restore( frameindex );
 	    if ( envp(regstack.top()) )
 	       frameset( getenvframe(regstack.top()), frameindex, val );
 	    next = EV_LET_BODY;
@@ -962,8 +976,8 @@ SEXPR EVAL::eceval( SEXPR sexpr )
 	 
 	 case EV_LET_BODY:
 	 {
-	    restore(env);            // assign env (benign for letrec)
-	    restore(unev);           // restore (<body>)
+	    restore( env );            // assign env (benign for letrec)
+	    restore( unev );           // restore (<body>)
 	    next = EVAL_SEQUENCE;
 	    break;
 	 }
@@ -981,94 +995,6 @@ SEXPR EVAL::eceval( SEXPR sexpr )
    }
    
    return null;
-}
-
-
-//
-// continuations
-//
-
-// the number of single entries in the continuation
-//   these precede the stack contents
-const int ContSingletons = 3;
-
-// the number of byte vector locations reserved for saved int values
-const int BvReserved = 4;
-
-
-SEXPR EVAL::create_continuation()
-{
-   const int regs_depth = regstack.getdepth();
-   const int args_depth = argstack.getdepth();
-   const int ints_depth = intstack.getdepth();
-   const int state_len = ContSingletons + regs_depth + args_depth;
-
-   regstack.push( MEMORY::continuation() );
-   cont_setstate( regstack.top(), MEMORY::vector(state_len) );
-   
-   // byte vector includes the intstack and the three(3) stack depth values
-   const int ByteVectorLength = ints_depth + BvReserved;
-   auto bv = MEMORY::byte_vector( ByteVectorLength*sizeof(INT16) );
-   
-   INT16* pint16 = reinterpret_cast<INT16*>(getbvecdata(bv));
-
-   pint16[0] = regs_depth;
-   pint16[1] = args_depth;
-   pint16[2] = ints_depth;
-   pint16[3] = pc;
-
-   // no additional allocations
-   auto state = cont_getstate( regstack.top() );
-
-   vectorset( state, 0, env );
-   vectorset( state, 1, unev );
-   vectorset( state, 2, bv );
-   
-   int j = ContSingletons;
-
-   for ( int i = 0; i < regs_depth; ++i )
-      vectorset( state, j++, regstack[i] );
-   
-   for ( int i = 0; i < args_depth; ++i )
-      vectorset( state, j++, argstack[i] ); 
-   
-   for ( int i = 0; i < ints_depth; ++i )
-      pint16[BvReserved+i] = intstack[i];
-   
-   return regstack.pop();
-}
-
-void EVAL::restore_continuation( SEXPR cc )
-{
-   // no allocations
-   
-   auto state = cont_getstate( cc );
-
-   env = vectorref( state, 0 );
-   unev = vectorref( state, 1 );
-   auto bv = vectorref( state, 2 );
-
-   const INT16* pint16 = reinterpret_cast<INT16*>(getbvecdata(bv));
-
-   const int regs_depth = pint16[0];
-   const int args_depth = pint16[1];
-   const int ints_depth = pint16[2];
-   pc                   = pint16[3];
-
-   int j = ContSingletons;
-   
-   for ( int i = 0; i < regs_depth; ++i )
-      regstack[i] = vectorref( state, j++ );
-   
-   for ( int i = 0; i < args_depth; ++i )
-      argstack[i] = vectorref( state, j++ );
-      
-   for ( int i = 0; i < ints_depth; ++i )
-      intstack[i] = pint16[BvReserved+i];
-   
-   regstack.newtop( regs_depth );
-   argstack.newtop( args_depth );
-   intstack.newtop( ints_depth );
 }
 
 }
