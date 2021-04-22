@@ -166,7 +166,7 @@ void EVAL::bceval()
 
 	 case OP_GREF:
 	 {
-	    SEXPR sym = bcode.OBJECT( pc );
+	    auto sym = bcode.OBJECT( pc );
 	    val = value( sym );
 	    if ( val == symbol_unbound )
 	       ERROR::severe("symbol is unbound", sym);
@@ -185,9 +185,9 @@ void EVAL::bceval()
 	 {
 	    int d = bcode[pc];
 #ifdef BCE_CHECK
-	    SEXPR e = guard(env, envp);
+	    auto e = guard(env, envp);
 #else
-	    SEXPR e = env;
+	    auto e = env;
 #endif
 	    while (d-- > 0)
 #ifdef BCE_CHECK
@@ -206,9 +206,9 @@ void EVAL::bceval()
 	    //     +0         +1 
 	    int d = bcode[pc];
 #ifdef BCE_CHECK
-	    SEXPR e = guard(env, envp);
+	    auto e = guard(env, envp);
 #else
-	    SEXPR e = env;
+	    auto e = env;
 #endif
 	    while (d-- > 0)
 #ifdef BCE_CHECK
@@ -288,7 +288,7 @@ void EVAL::bceval()
 	       argstack.argc = 0;
 	       for ( int i = 1; i < argc; ++i )
 	       {
-		   const SEXPR arg = argstack[p+i];
+		   const auto arg = argstack[p+i];
 		   argstack.push( car(arg) );
 		   argstack[p+i] = cdr(arg);
 	       }
@@ -300,7 +300,7 @@ void EVAL::bceval()
 	 case OP_MAP_RESULT:
 	 {
 	    // result is in regstack[top]
-	    SEXPR x = MEMORY::cons(val, null);
+	    const auto x = MEMORY::cons(val, null);
 	    const int top = regstack.gettop();
 	    if ( nullp(car(regstack[top])) )
 	    {
@@ -351,7 +351,7 @@ void EVAL::bceval()
 	       argstack.argc = 0;
 	       for ( int i = 1; i < argc; ++i )
 	       {
-		   const SEXPR arg = argstack[p+i];
+		   const auto arg = argstack[p+i];
 		   argstack.push( car(arg) );
 		   argstack[p+i] = cdr(arg);
 	       }
@@ -433,12 +433,12 @@ void EVAL::bceval()
 		  ArgstackIterator iter;
 		  val = iter.getarg();
 #ifdef BCE_CHECK
-		  SEXPR args = guard(iter.getlast(), listp);
+		  auto args = guard(iter.getlast(), listp);
 #else
-		  SEXPR args = iter.getlast();
+		  auto args = iter.getlast();
 #endif
 		  argstack.removeargc();
-		  for (; anyp(args); args = cdr(args))
+		  for ( ; anyp(args); args = cdr(args) )
 		     argstack.push(car(args));
 		  goto start_apply_cont;
 	       }
@@ -450,7 +450,7 @@ void EVAL::bceval()
 		  if ( iter.more() )
 		  {
 		     env = iter.getlast();
-		     if (anyp(env))
+		     if ( anyp(env) )
 			guard(env, envp); 
 		  }
 		  else
@@ -492,7 +492,7 @@ void EVAL::bceval()
 	       case n_continuation:
 	       {
 		  ArgstackIterator iter;
-		  SEXPR ccresult = iter.more() ? iter.getlast() : null;
+		  auto ccresult = iter.more() ? iter.getlast() : null;
 		  argstack.removeargc();
 		  // replace the entire execution context
 		  restore_continuation(val);
@@ -528,7 +528,7 @@ void EVAL::bceval()
 	       case n_force:
 	       {
 		  ArgstackIterator iter;
-		  SEXPR promise = guard(iter.getlast(), promisep);
+		  auto promise = guard(iter.getlast(), promisep);
 		  argstack.removeargc();
 		  if ( nullp(promise_getexp(promise)) )
 		  {
@@ -565,7 +565,7 @@ void EVAL::bceval()
 	    // cache and return the forced value
 	    // result is in val
 	    // promise is on regstack.top()
-	    SEXPR promise = guard( regstack.pop(), promisep );
+	    auto promise = guard( regstack.pop(), promisep );
 	    promise_setexp( promise, null );
 	    promise_setval( promise, val );
 	    break;
@@ -636,9 +636,9 @@ void EVAL::bceval()
 	    // op, index, [val]                 (2b)
 	    //     +0
 #ifdef BCE_CHECK
-	    SEXPR e = guard( regstack.top(), envp );
+	    auto e = guard( regstack.top(), envp );
 #else
-	    SEXPR e = regstack.top();
+	    auto e = regstack.top();
 #endif
 	    const unsigned index = bcode[pc];
 #ifdef BCE_CHECK
