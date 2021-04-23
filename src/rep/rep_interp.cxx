@@ -115,7 +115,7 @@ namespace escheme
 	 }
 	 
 	 if ( load_compiler )
-	    IMAGER::image_load( system_path("compiler/compiler-image.scm") );
+	    IMAGER::load( system_path("compiler/compiler-image.scm") );
 #endif
 	 define_system();
 	 

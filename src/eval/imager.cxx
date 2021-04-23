@@ -150,7 +150,7 @@ static void load_file( SEXPR port )
    }
 }
 
-void IMAGER::image_load( const std::string& fname )
+void IMAGER::load( const std::string& fname )
 {
    auto port = PIO::open( MEMORY::string(fname), pm_input, "r" );
    
@@ -161,7 +161,7 @@ void IMAGER::image_load( const std::string& fname )
    PIO::close(port);
 }
 
-SEXPR IMAGER::image_get_one( const std::string& fname )
+SEXPR IMAGER::read_one( const std::string& fname )
 {
    auto port = PIO::open( MEMORY::string(fname), pm_input, "r" );
    regstack.push(port);
@@ -174,7 +174,7 @@ SEXPR IMAGER::image_get_one( const std::string& fname )
    return code;
 }
 
-SEXPR IMAGER::image_get_all( const std::string& fname )
+SEXPR IMAGER::read_all( const std::string& fname )
 {
    auto port = PIO::open( MEMORY::string(fname), pm_input, "r" );
    regstack.push(port);
