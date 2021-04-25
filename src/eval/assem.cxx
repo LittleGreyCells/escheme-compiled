@@ -632,33 +632,26 @@ static void print_sexpr( SEXPR sv, SEXPR bv, int index )
 
 static void print_byte( SEXPR bv, int index )
 {
-   char buffer[80];
-   sprintf( buffer, "%d", bvecref(bv, index) );
-   PIO::put( buffer );
+   PIO::put( format( "%d", (int)bvecref(bv, index))  );
 }
 
 static void print_int16( SEXPR bv, int index )
 {
-   char buffer[80];
-   sprintf( buffer, "%d", get16(bv, index) );
-   PIO::put( buffer );
+   PIO::put( format( "%d", get16(bv, index) ) );
 }
 
 static void print_code( int op, SEXPR bv, int index )
 {
-   char buffer[80];
    const int max_len = 5;
 
    for ( int i = 0; i < max_len; ++i )
       if ( i < optab[op].nbytes )
       {
-	 sprintf( buffer, "%02x ", bvecref(bv, index+i) );
-         PIO::put( buffer );
+         PIO::put( format( "%02x ", (int)bvecref(bv, index+i) ) );
       }
       else
       {
-	 sprintf( buffer, "%2s ", " ." );
-         PIO::put( buffer );
+         PIO::put( format( "%2s ", " ." ) );
       }
 }
 
@@ -671,7 +664,6 @@ static void indent( int level )
 
 static void decode( SEXPR code, int level=0 )
 {
-   char buffer[80];
    auto bv = code_getbcodes(code);
    auto sv = code_getsexprs(code);
    int index = 0;
@@ -693,8 +685,7 @@ static void decode( SEXPR code, int level=0 )
       }
 
       indent( level );
-      sprintf( buffer, "%d:%04d: ", level, index );
-      PIO::put( buffer );
+      PIO::put( format( "%d:%04d: ", level, index ) );
       
       print_code( op, bv, index );
       PIO::put( optab[op].name );
@@ -851,8 +842,7 @@ static void decode( SEXPR code, int level=0 )
    }
 
    indent( level );
-   sprintf( buffer, "%d:end\n", level );
-   PIO::put( buffer );
+   PIO::put( format( "%d:end\n", level )  );
 }
 
 SEXPR ASSEM::decode()
