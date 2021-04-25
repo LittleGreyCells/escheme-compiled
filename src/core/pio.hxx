@@ -1,6 +1,8 @@
 #ifndef pio_hxx
 #define pio_hxx
 
+#include <string>
+
 #include "sexpr.hxx"
 
 //
@@ -34,9 +36,12 @@ namespace PIO
    void unget( SEXPR inport, int ch );
    
    void put( SEXPR outport, const char* s );
+   void put( SEXPR outport, const std::string& s );
+   
    void put( SEXPR outport, int ch );
    
    inline void put( const char* s ) { put(stdout_port, s); }
+   inline void put( const std::string& s ) { put(stdout_port, s); }
    inline void put( int ch ) { put(stdout_port, ch); }
 }
 

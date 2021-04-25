@@ -1,5 +1,6 @@
 #include "assem.hxx"
 
+#include <cstdio>
 #include <vector>
 
 #include "code.hxx"
@@ -11,6 +12,7 @@
 #include "core/memory.hxx"
 #include "core/regstack.hxx"
 #include "core/symtab.hxx"
+#include "core/format.hxx"
 
 //
 // instruction set
@@ -631,14 +633,14 @@ static void print_sexpr( SEXPR sv, SEXPR bv, int index )
 static void print_byte( SEXPR bv, int index )
 {
    char buffer[80];
-   SPRINTF( buffer, "%d", bvecref(bv, index) );
+   sprintf( buffer, "%d", bvecref(bv, index) );
    PIO::put( buffer );
 }
 
 static void print_int16( SEXPR bv, int index )
 {
    char buffer[80];
-   SPRINTF( buffer, "%d", get16(bv, index) );
+   sprintf( buffer, "%d", get16(bv, index) );
    PIO::put( buffer );
 }
 
@@ -650,12 +652,12 @@ static void print_code( int op, SEXPR bv, int index )
    for ( int i = 0; i < max_len; ++i )
       if ( i < optab[op].nbytes )
       {
-	 SPRINTF( buffer, "%02x ", bvecref(bv, index+i) );
+	 sprintf( buffer, "%02x ", bvecref(bv, index+i) );
          PIO::put( buffer );
       }
       else
       {
-	 SPRINTF( buffer, "%2s ", " ." );
+	 sprintf( buffer, "%2s ", " ." );
          PIO::put( buffer );
       }
 }
@@ -675,12 +677,10 @@ static void decode( SEXPR code, int level=0 )
    int index = 0;
 
    indent( level );
-   SPRINTF( buffer, "%d:begin\n", level );
-   PIO::put( buffer );
+   PIO::put( format("%d:begin\n", level) );
 
    indent( level );
-   SPRINTF( buffer, "%d:sexprs ", level );
-   PIO::put( buffer );
+   PIO::put( format("%d:sexprs ", level) );
    PRINTER::print( sv );
    PIO::put( "\n" );
 
@@ -689,14 +689,13 @@ static void decode( SEXPR code, int level=0 )
       const unsigned op = bvecref(bv, index);
       if ( op >= optab.size() )
       {
-         char buffer[80];
-	 SPRINTF( buffer, "decode -- bad opcode (%d) at (%d)", op, index );
-	 ERROR::severe( buffer, bv );
+	 ERROR::severe( format("decode -- bad opcode (%d) at (%d)", (int)op, index).c_str(), bv );
       }
 
       indent( level );
-      SPRINTF( buffer, "%d:%04d: ", level, index );
+      sprintf( buffer, "%d:%04d: ", level, index );
       PIO::put( buffer );
+      
       print_code( op, bv, index );
       PIO::put( optab[op].name );
 
@@ -852,7 +851,7 @@ static void decode( SEXPR code, int level=0 )
    }
 
    indent( level );
-   SPRINTF( buffer, "%d:end\n", level );
+   sprintf( buffer, "%d:end\n", level );
    PIO::put( buffer );
 }
 

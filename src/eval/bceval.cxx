@@ -9,6 +9,7 @@
 #include "core/memory.hxx"
 #include "core/funtab.hxx"
 #include "core/symtab.hxx"
+#include "core/format.hxx"
 
 #define BCE_CHECK
 #undef BCE_CHECK
@@ -669,9 +670,7 @@ void EVAL::bceval()
 	 
 	 default:
 	 {
-	    char message[80];
-	    SPRINTF( message, "unknown opcode: op=%d, pc=%d", op, pc );
-	    ERROR::severe( message, unev );
+	    ERROR::severe( format( "unknown opcode: op=%d, pc=%d", (int)op, pc ).c_str(), unev );
 	    break;
 	 }
       }
