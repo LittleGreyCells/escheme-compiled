@@ -126,7 +126,8 @@ void EVAL::bceval()
 	 case OP_RESTORE_EXP:  
 	    restore( exp ); 
 	    break;
-
+	    
+#ifndef NO_INTERP
 	 case OP_SAVE_xxxx: 
 	    save( cont ); 
 	    break;
@@ -134,7 +135,8 @@ void EVAL::bceval()
 	 case OP_RESTORE_xxxx: 
 	    restore( cont ); 
 	    break;
-
+#endif
+	    
 	 case OP_SAVE_ARGC: 
 	    save( argstack.argc ); 
 	    break;
@@ -416,6 +418,10 @@ void EVAL::bceval()
 	       {
 		  env = extend_env_fun(val);
 		  unev = getclosurecode(val);
+#ifdef NO_INTERP
+		  pc = 0;
+		  goto start_bceval;
+#else
 		  if ( _codep(unev) )
 		  {
 		     pc = 0;
@@ -427,17 +433,14 @@ void EVAL::bceval()
 		     next = EVAL_SEQUENCE;
 		     return;
 		  }
+#endif
 	       }
 
 	       case n_apply:
 	       {
 		  ArgstackIterator iter;
 		  val = iter.getarg();
-#ifdef BCE_CHECK
 		  auto args = guard(iter.getlast(), listp);
-#else
-		  auto args = iter.getlast();
-#endif
 		  argstack.removeargc();
 		  for ( ; anyp(args); args = cdr(args) )
 		     argstack.push(car(args));
@@ -461,6 +464,11 @@ void EVAL::bceval()
 		  argstack.removeargc();
 
 		  // EVAL
+#ifdef NO_INTERP
+		  unev = exp;
+		  pc = 0;
+		  goto start_bceval;
+#else
 		  if ( _codep(exp) )
 		  {
 		     unev = exp;
@@ -474,16 +482,13 @@ void EVAL::bceval()
 		     next = EVAL_DISPATCH;
 		     return;
 		  }
+#endif
 	       }
 
 	       case n_callcc:
 	       {
 		  ArgstackIterator iter;
-#ifdef BCE_CHECK
 		  val = guard(iter.getlast(), closurep);
-#else
-		  val = iter.getlast();
-#endif
 		  argstack.removeargc();
 		  // create and pass the continuation to the argument function
 		  argstack.push( create_continuation() );
@@ -499,6 +504,10 @@ void EVAL::bceval()
 		  restore_continuation(val);
 		  val = ccresult;                                       // now assign val
 		  // determine if the continuation should resume here or in the interpereter
+#ifdef NO_INTERP
+		  RESTORE_BCE_REGISTERS();
+		  goto start_bceval;
+#else
 		  if ( _codep( regstack.top() ) )
 		  {
 		     RESTORE_BCE_REGISTERS();
@@ -510,6 +519,7 @@ void EVAL::bceval()
 		     next = cont;
 		     return;
 		  }
+#endif
 	       }
 
 	       case n_map:
@@ -654,6 +664,7 @@ void EVAL::bceval()
 	    break;
 	 }
 
+#ifndef NO_INTERP
 	 case OP_RTE:
 	 {
 	    // op
@@ -661,7 +672,7 @@ void EVAL::bceval()
 	    next = cont;
 	    return;
 	 }
-	 
+#endif	 
 	 case OP_RTC:
 	 {
 	    // op
