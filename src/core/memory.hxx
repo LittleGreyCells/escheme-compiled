@@ -18,6 +18,7 @@ namespace MEMORY
    extern long FreeNodeCount;
    extern int  CollectionCount;
    extern FrameStore frameStore;
+   extern int  MaxIterMarkDepth;
 
 #ifdef GC_STATISTICS_DETAILED
    extern std::array<UINT32, NUMKINDS> ReclamationCounts;
@@ -35,6 +36,7 @@ namespace MEMORY
    SEXPR symbol( const std::string& name );
    SEXPR string( const char* string );
    SEXPR string( const std::string& string );
+   SEXPR string( UINT32 length, char ch );
    SEXPR cons( SEXPR car, SEXPR cdr );
    SEXPR prim( const char* name, FUNCTION func, NodeKind kind = n_func );
    SEXPR port( FILE* file, short mode );

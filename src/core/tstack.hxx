@@ -16,24 +16,26 @@ public:
   
    void push( T s )
    { 
-      if (fullp())
+      if ( fullp() )
 	 overflow();
       data[++top_index] = s; 
    }
    
    T pop()
    { 
-      if (emptyp())
+      if ( emptyp() )
 	 underflow();
       return data[top_index--]; 
    }
-   
+
    T& top()
    { 
-      if (emptyp())
+      if ( emptyp() )
 	 underflow();
       return data[top_index];
    }
+   
+   T unchecked_pop() { return data[top_index--]; }
    
    int emptyp() { return top_index == -1; }
    int fullp()  { return top_index == size-1; }

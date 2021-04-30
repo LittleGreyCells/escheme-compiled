@@ -141,6 +141,7 @@ namespace FUNC
    // predicates
    SEXPR procedurep();
 
+   SEXPR string_make();
    SEXPR string_length();
    SEXPR string_append();
    SEXPR string_ref();
@@ -148,7 +149,15 @@ namespace FUNC
    SEXPR string_substring();
    SEXPR string_fill();
    SEXPR string_copy();
-   SEXPR string_find();   
+   SEXPR string_dup();
+   SEXPR string_find();
+   SEXPR string_trim();
+   SEXPR string_trim_left();
+   SEXPR string_trim_right();
+   SEXPR string_downcase();
+   SEXPR string_upcase();
+   SEXPR string_pad_left();
+   SEXPR string_pad_right();
 
 
    SEXPR string_EQ();

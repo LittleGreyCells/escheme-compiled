@@ -3,6 +3,8 @@
 #include <cstring>
 #include <array>
 #include <list>
+#include <stack>
+#include <algorithm>
 
 #include "error.hxx"
 #include "regstack.hxx"
@@ -39,6 +41,7 @@ void MEMORY::register_marker( Marker marker )
 long MEMORY::TotalNodeCount  = 0;
 long MEMORY::FreeNodeCount   = 0;
 int  MEMORY::CollectionCount = 0;
+int  MEMORY::MaxIterMarkDepth = 0;
 
 static SEXPR FreeNodeList;
 
@@ -116,13 +119,142 @@ static void badnode( SEXPR n )
    ERROR::fatal( format( "bad node (%p, %d) during gc", n->id(), (int)nodekind(n) ).c_str() );
 }
 
+#ifdef ITERATIVE_MARK
+//
+// iterative marking function
+//
 void MEMORY::mark( SEXPR n )
 {
-   if ( nullp(n) || markedp(n) )
+   if ( markedp(n) )
+      return;
+
+   std::stack<SEXPR> sexprs;
+
+   sexprs.push(n);
+
+   while ( !sexprs.empty() )
+   {
+      #ifdef MAX_DEPTH
+      MaxIterMarkDepth = std::max( MaxIterMarkDepth, (int)sexprs.size() );
+      #endif
+      auto n = sexprs.top();
+      sexprs.pop();
+
+     start_mark:
+	 
+      if ( !markedp(n) )
+      {
+	 setmark(n);
+
+	 switch ( nodekind(n) )
+	 {
+	    case n_null:
+	    case n_bvec:
+	    case n_string:
+	    case n_string_port:
+	    case n_fixnum:
+	    case n_flonum:
+	    case n_port:
+	    case n_char:
+	    case n_func:
+	    case n_eval:
+	    case n_apply:
+	    case n_callcc:
+	    case n_map:
+	    case n_foreach:
+	    case n_force:
+	       break;
+	       
+	    case n_cons:
+	       sexprs.push( getcar(n) );
+	       n = getcdr(n);
+	       goto start_mark;
+	       
+	    case n_promise:
+	       sexprs.push( promise_getexp(n) );
+	       n = promise_getval(n);
+	       goto start_mark;
+	       
+	    case n_code:
+	       setmark( code_getbcodes(n) );
+	       n = code_getsexprs(n);
+	       goto start_mark;
+	       
+	    case n_continuation:
+	       n = cont_getstate(n);
+	       goto start_mark;
+	       
+	    case n_environment:
+	    {
+	       // frame
+	       auto frame = getenvframe(n);
+	       sexprs.push( getframevars(frame) );
+	       const int nslots = getframenslots(frame);
+	       for ( int i = 0; i < nslots; ++i )
+		  sexprs.push( frameref(frame, i) );
+	       // benv
+	       n = getenvbase(n);
+	       goto start_mark;
+	    }
+	    case n_vector:
+	    {
+	       const int length = getvectorlength(n);
+	       for ( int i = 0; i < length; ++i )
+		  sexprs.push( vectorref(n, i) );
+	       break;
+	    }
+	    
+	    case n_closure:
+	    {
+	       sexprs.push( getclosurecode(n) );
+	       sexprs.push( getclosurebenv(n) );
+	       n = getclosurevars(n);
+	       goto start_mark;
+	    }
+	    
+	    case n_symbol:
+	       n = getpair(n);
+	       goto start_mark;
+	       
+	    case n_free:
+	    default:
+	       badnode(n);
+	       break;
+	 }
+      }
+   }
+}
+
+#else
+   
+//
+// recursive marking function
+//
+void MEMORY::mark( SEXPR n )
+{
+   if ( markedp(n) )
       return;
 
    switch ( nodekind(n) )
    {
+      case n_null:
+      case n_bvec:
+      case n_string:
+      case n_string_port:
+      case n_fixnum:
+      case n_flonum:
+      case n_port:
+      case n_char:
+      case n_func:
+      case n_eval:
+      case n_apply:
+      case n_callcc:
+      case n_map:
+      case n_foreach:
+      case n_force:
+	 setmark(n);
+	 break;
+
       case n_cons:
 	 setmark(n);
 	 mark( getcar(n) );
@@ -152,7 +284,7 @@ void MEMORY::mark( SEXPR n )
          // frame
          auto frame = getenvframe(n);
          mark( getframevars(frame) );
-         const auto nslots = getframenslots(frame);
+         const int nslots = getframenslots(frame);
          for ( int i = 0; i < nslots; ++i )
             mark( frameref(frame, i) );
          // benv
@@ -163,7 +295,7 @@ void MEMORY::mark( SEXPR n )
       case n_vector:
       {
 	 setmark(n);
-	 const auto length = getvectorlength(n);
+	 const int length = getvectorlength(n);
 	 for ( int i = 0; i < length; ++i )
 	    mark( vectorref(n, i) );
 	 break;
@@ -183,33 +315,6 @@ void MEMORY::mark( SEXPR n )
 	 mark( getpair(n) );
 	 break;
          
-      case n_bvec:
-	 setmark(n);
-         break;
-         
-      case n_string:
-	 setmark(n);
-	 break;
-
-      case n_string_port:
-      case n_fixnum:
-      case n_flonum:
-      case n_port:
-      case n_char:
-      case n_func:
-      case n_eval:
-      case n_apply:
-      case n_callcc:
-      case n_map:
-      case n_foreach:
-      case n_force:
-	 setmark(n);
-	 break;
-
-      case n_null:
-	 // null is not allocated from node space
-	 break;
-   
       case n_free:
       default:
 	 badnode(n);
@@ -217,12 +322,15 @@ void MEMORY::mark( SEXPR n )
    }
 }
 
+#endif
+
 void MEMORY::mark( TSTACK<SEXPR>& stack )
 {
    const auto depth = stack.getdepth();
    for ( int i = 0; i < depth; ++i )
       mark( stack[i] );
 }
+
 
 static void sweep()
 {
@@ -391,6 +499,15 @@ SEXPR MEMORY::string( const char* s )
 SEXPR MEMORY::string( const std::string& s )
 {
    return new_string( s.c_str(), s.length() );
+}
+
+SEXPR MEMORY::string( UINT32 length, char ch )
+{
+   auto s = new_string( "", length );
+   for ( int i = 0; i < length; ++i )
+      getstringdata(s)[i] = ch;
+   getstringdata(s)[length] = '\0';
+   return s;
 }
 
 SEXPR MEMORY::string_port( SEXPR str, short mode )
