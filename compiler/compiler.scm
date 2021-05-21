@@ -37,9 +37,9 @@
 		 ((eq? x 'if)       (ec:compile-if exp env target linkage))
 		 ((eq? x 'cond)     (ec:compile-cond exp env target linkage))
 		 ((eq? x 'while)    (ec:compile-while exp env target linkage))
-		 ((eq? x 'lambda)   (ec:compile-lambda (ec:nested-defines exp) env target linkage))
-		 ((eq? x 'let)      (ec:compile-let (ec:nested-defines exp) env target linkage))
-		 ((eq? x 'letrec)   (ec:compile-letrec (ec:nested-defines exp) env target linkage))
+		 ((eq? x 'lambda)   (ec:compile-lambda exp env target linkage))
+		 ((eq? x 'let)      (ec:compile-let exp env target linkage))
+		 ((eq? x 'letrec)   (ec:compile-letrec exp env target linkage))
 		 ((eq? x 'delay)    (ec:compile-delay exp env target linkage))
 		 ((eq? x 'access)   (ec:compile-access exp env target linkage))
 		 ((eq? x 'and)      (ec:compile-and exp env target linkage))
@@ -799,51 +799,6 @@
 			  (args (cdr x))
 			  (body (cddr d)))
 		      (list 'define sym (append '(lambda) (list args) body)))))))))
-
-;;
-;; Nested Defines
-;;
-;;   (lambda (a b)
-;;      (define (mul x y) (* x y))
-;;      (define (add x y) (+ x y))
-;;      (mul a (add a b)) )
-;;    ==>
-;;   (lambda (a b)
-;;     (let (mul add)
-;;       (set! mul (lambda (x y) (* x y)))
-;;       (set! add (lambda (x y) (+ x y)))
-;;       (mul a (add a b)) ))
-;;
-;; note 03/26/2021: nested defines added
-;;
-(define (ec:nested-defines <lambda>)
-  (let ((<kw> (car <lambda>))
-	(<body> (cddr <lambda>))
-	(accumulate-defines
-	 (lambda (body)
-	   (let ((defines '())
-		 (sexprs '()))
-	     (while body
-		(let ((x (car body)))
-		  (if (and (pair? x) (eq? (car x) 'define))
-		      (set! defines (cons (ec:normalize-define x) defines))
-		      (set! sexprs (cons x sexprs)))
-		  (set! body (cdr body))))
-	     (cons defines sexprs))))
-	(makeset
-	 (lambda (d)
-	   (cons 'set! (cdr d)))))
-    (let ((pair (accumulate-defines <body>)))
-      (if (null? (car pair))
-	  <lambda>
-	  (let ((<vars> (map cadr (car pair)))
-		(<sets> (map makeset (car pair)))
-		(<sexprs> (reverse (cdr pair)))
-		(<params> (cadr <lambda>)))
-	    (list <kw> <params>
-		  (append '(let) (list <vars>) <sets> <sexprs>))
-	    ))
-      )))
       
 ;;
 ;; other compiler support functions
