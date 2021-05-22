@@ -1,38 +1,46 @@
 ;;
-;; standard functions and macros
+;; standard functions
 ;;
 
-(define (decode-fun fun)
-  (let ((exp (%closure-code fun)))
-    (if (code? exp)
-	(disassemble exp)
-	exp)))
+;;
+;; error
+;;
 
 (define (error msg . object)
-  (display "error: ")
-  (display msg)
+  (display "error: " *stderr*)
+  (display msg *stderr*)
   (if object
-      (begin (display " [") 
-             (display object)
-             (display "]")))
-  (newline)
+      (begin (display " [" *stderr*) 
+             (display (car object) *stderr*)
+             (display "]" *stderr*) ))
+  (newline *stderr*)
   (*toplevel*))
 
 (define (fatal msg . object)
-  (display "fatal error: ")
-  (display msg)
+  (display "fatal error: " *stderr*)
+  (display msg *stderr*)
   (if object
-      (begin (display " [") 
-             (display object)
-             (display "]")))
-  (newline)
+      (begin (display " [" *stderr*) 
+             (display (car object) *stderr*)
+             (display "]" *stderr*) ))
+  (newline *stderr*)
   (exit))
+
+;;
+;; lists
+;;
 
 ;; cdr past the 1st n elements and return car of remaining list
 (define (list-ref list n)
   (car (list-tail list n)))
 
+(define first car)
+(define second cadr)
+(define third caddr)
+
+;;
 ;; arrays
+;;
 
 (define (make-array d . r)
   ((lambda (v) 
@@ -57,62 +65,5 @@
 ;; terminal/history
 
 (define history show-history)
-
-;;
-;; special forms macros
-;;
-
-(macro let*
-   (lambda (exp)
-     (letrec ((xform
-	       (lambda (vars body)
-		 (if (null? vars)
-		     `(begin ,@body)
-		     `(let (,(car vars))
-			,(xform (cdr vars) body))))))
-       (let ((vars (cadr exp))
-	     (body (cddr exp)))
-	 (xform vars body)
-	 ))))
-
-(macro case
-  (lambda (form)
-    (let ((test (cadr form))
-          (sym (gensym)))
-      `(let ((,sym ,test))
-         (cond ,@(map (lambda (x)
-                        (cond ((eq? (car x) 'else)
-                               x)
-			      ((atom? (car x))
-			       `((eqv? ,sym ',(car x)) ,@(cdr x)))
-			      (else
-                               `((memv ,sym ',(car x)) ,@(cdr x)))))
-                      (cddr form)))))))
-
-(macro do
-  (lambda (exp)
-    (let ((do-var-clause 
-	   (lambda (exp)
-	     (if (not (symbol? (car exp)))
-		 (error "do var clause bad initial binding" exp))
-	     (let ((<bind> (list (car exp) (cadr exp)))
-		   (<step> (cddr exp)))
-	       (if (null? <step>)
-		   (cons <bind> nil)
-		 (cons <bind> (list 'set! (car exp) (caddr exp))))))))
-      (let ((<var-clauses> (map do-var-clause (cadr exp)))
-	    (<test-clause> (caddr exp))
-	    (<body> (cdddr exp)))
-	;; assemble the parts
-	(let ((<bindings> (map car <var-clauses>))
-	      (<steps> (map cdr <var-clauses>))
-	      (<test> (car <test-clause>))
-	      (<results> (cdr <test-clause>)))
-	  `(let ,<bindings>
-	     (while (not ,<test>)
-	       ,@<body>
-	       ,@<steps>)
-	     ,@<results>)
-	  )))))
 
 ;; [EOF]
