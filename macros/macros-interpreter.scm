@@ -1,9 +1,11 @@
 ;;
-;; 10/18/2013  LMJ Adopted for escheme
+;; The following code is adapted from xscheme macros.s
+;;
+;;   10/18/2013  LMJ Original adaptation for escheme
+;;   05/21/2021  LMJ Added support for internal defines
 ;;
 
 ;; modified for escheme
-;; begin
 (define %%eval eval)
 ;; end
 
@@ -26,7 +28,6 @@
     lyst))
 
 ;; modified for escheme
-;; begin
 (define (eval expr . env)
   (if (null? env)
     (%%eval (%expand-macros expr))
@@ -54,13 +55,36 @@
 (compiler-syntax quote
   (lambda (form) form))
 	  
+(compiler-syntax quasiquote
+  (lambda (x)
+    (qq-process (cadr x))))
+    
+;; modified for escheme
+(define (%internal-definitions body)
+  (letrec ((normalize
+	    (lambda (d)
+	      (let ((x (cadr d)))
+		(if (symbol? x)
+		    d
+		    `(define ,(car x) (lambda ,(cdr x) ,@(cddr d))) ))))
+	   (loop
+	    (lambda (body bindings)
+	      (if (and body (pair? (car body)) (eq? (caar body) 'define))
+		  (let ((x (normalize (car body))))
+		    (loop (cdr body) (cons `(,(cadr x) ,(caddr x)) bindings)))
+		  (if bindings
+		      `((letrec ,(reverse bindings) ,@body))
+		      body)))))
+    (loop body nil)))
+;; end
+
 (compiler-syntax lambda
   (lambda (form)
     (cons
       'lambda
       (cons
         (cadr form)
-        (%expand-list (cddr form))))))
+        (%expand-list (%internal-definitions (cddr form)))))))
 
 (compiler-syntax define
   (lambda (form)
@@ -68,7 +92,7 @@
       'define
       (cons
         (cadr form)
-        (%expand-list (cddr form))))))
+        (%expand-list (%internal-definitions (cddr form)))))))
   
 (compiler-syntax set!
   (lambda (form)
@@ -109,7 +133,6 @@
     pair))
 
 (define (%expand-let-form form)
-  ;; (print "%expand-let-form")
   (cons
     (car form)
     (cons
@@ -117,9 +140,10 @@
         (if (pair? lyst)
           (map %expand-let-assignment lyst)
           lyst))
-      (%expand-list (cddr form)))))
+      (%expand-list (%internal-definitions (cddr form))))))
 
 (compiler-syntax let %expand-let-form)
+;; (compiler-syntax let* %expand-let-form)
 (compiler-syntax letrec %expand-let-form)
 
 (macro define-integrable
@@ -129,4 +153,4 @@
 (macro declare
   (lambda (form) #f))
 
-;; [EOF]
+;; [END]

@@ -25,8 +25,8 @@
             (close-port port)))
         #t)))
 
-(load (system-path "macros/macros-compiler.scm"))
 (load (system-path "macros/qquote.scm"))
+(load (system-path "macros/macros-compiler.scm"))
 (load (system-path "boot/standard-functions.scm"))
 (load (system-path "boot/catch-throw.scm"))
 
