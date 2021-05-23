@@ -453,13 +453,11 @@ void EVAL::bceval()
 		  exp = iter.getarg();
 		  if ( iter.more() )
 		  {
-		     env = iter.getlast();
-		     if ( anyp(env) )
-			guard(env, envp); 
+		     env = guard(iter.getlast(), anyenvp);
 		  }
 		  else
 		  {
-		     env = theGlobalEnv;
+		     env = null;
 		  }
 		  argstack.removeargc();
 
