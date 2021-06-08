@@ -8,9 +8,7 @@
 namespace escheme
 {
 
-using UMAP = std::unordered_map< std::string, SEXPR >;
-
-UMAP table;
+std::unordered_map<std::string, SEXPR> table;
 
 // canonical truth and other symbols
 SEXPR symbol_unbound;
@@ -75,7 +73,7 @@ SEXPR SYMTAB::enter( const char* name, SEXPR value )
    return SYMTAB::enter( std::string(name), value );
 }
    
-SEXPR SYMTAB::symbols()
+SEXPR SYMTAB::all_symbols()
 {
    auto v = MEMORY::vector( table.size() );
    int i = 0;
