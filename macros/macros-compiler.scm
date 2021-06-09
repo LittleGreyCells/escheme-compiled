@@ -32,7 +32,7 @@
 (define (compile expr . env)
   (if (null? env)
     (%%compile (%expand-macros expr))
-    (%%compile (%expand-macros expr) (car env)) (car env)))
+    (%%compile (%expand-macros expr) (car env))))
 ;; end
 
 (put 'macro '%macro
