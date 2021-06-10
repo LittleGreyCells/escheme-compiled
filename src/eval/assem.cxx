@@ -27,8 +27,8 @@
 //   (assign <reg> (reg <reg>))
 //   (assign <reg> (const <value>))
 //   (gref [<reg>] <sym>)
-//   (gset <sym>)
 //   (gdef <sym>)
+//   (gset <sym>)
 //   (fref <reg> <depth> <index>) 
 //   (fset <depth> <index>)
 //   (get-access [<reg>] (const <sym>) [(reg val)])
@@ -98,37 +98,39 @@ static std::vector<OpcodeEntry> optab =
    { OP_POP_ARGS,          1, "pop-args"     , nullptr }, // op=16
    { OP_ASSIGN_REG,        2, "assign-reg"   , nullptr }, // op=17
    { OP_ASSIGN_OBJ,        2, "assign-obj"   , nullptr }, // op=18
+   
    { OP_GREF,              2, "gref"         , nullptr }, // op=19
    { OP_GSET,              2, "gset"         , nullptr }, // op=20
-   { OP_FREF,              3, "fref"         , nullptr }, // op=21
-   { OP_FSET,              3, "fset"         , nullptr }, // op=22
-   { OP_GET_ACCESS,        2, "get-access"   , nullptr }, // op=23
-   { OP_SET_ACCESS,        2, "set-access"   , nullptr }, // op=24
-   { OP_LAMBDA,            5, "make-closure" , nullptr }, // op=25
-   { OP_APPLY,             1, "apply"        , nullptr }, // op=26
-   { OP_APPLY_CONT,        1, "apply-cont"   , nullptr }, // op=27
-   { OP_TEST_TRUE,         1, "test-true"    , nullptr }, // op=28
-   { OP_TEST_FALSE,        1, "test-false"   , nullptr }, // op=29
-   { OP_BRANCH,            3, "branch"       , nullptr }, // op=30
-   { OP_BRANCH_CONT,       1, "branch-cont"  , nullptr }, // op=31
-   { OP_GOTO,              3, "goto"         , nullptr }, // op=32
-   { OP_GOTO_CONT,         1, "goto-cont"    , nullptr }, // op=33
-   { OP_MAP_INIT,          1, "map-init"     , nullptr }, // op=34
-   { OP_MAP_APPLY,         1, "map-apply"    , nullptr }, // op=35
-   { OP_MAP_RESULT,        1, "map-result"   , nullptr }, // op=36
-   { OP_FOR_INIT,          1, "for-init"     , nullptr }, // op=37
-   { OP_FOR_APPLY,         1, "for-apply"    , nullptr }, // op=38
-   { OP_FOR_RESULT,        1, "for-result"   , nullptr }, // op=39
-   { OP_EXTEND_ENV,        4, "extend-env"   , nullptr }, // op=40
-   { OP_ESET,              2, "eset"         , nullptr }, // op=41
-   { OP_DELAY,             2, "delay"        , nullptr }, // op=42
-   { OP_FORCE_VALUE,       1, "force-value"  , nullptr }, // op=43
+   { OP_GDEF,              2, "gdef"         , nullptr }, // op=21
+   
+   { OP_FREF,              3, "fref"         , nullptr }, // op=22
+   { OP_FSET,              3, "fset"         , nullptr }, // op=23
+   { OP_GET_ACCESS,        2, "get-access"   , nullptr }, // op=24
+   { OP_SET_ACCESS,        2, "set-access"   , nullptr }, // op=25
+   { OP_LAMBDA,            5, "make-closure" , nullptr }, // op=26
+   { OP_APPLY,             1, "apply"        , nullptr }, // op=27
+   { OP_APPLY_CONT,        1, "apply-cont"   , nullptr }, // op=28
+   { OP_TEST_TRUE,         1, "test-true"    , nullptr }, // op=29
+   { OP_TEST_FALSE,        1, "test-false"   , nullptr }, // op=30
+   { OP_BRANCH,            3, "branch"       , nullptr }, // op=31
+   { OP_BRANCH_CONT,       1, "branch-cont"  , nullptr }, // op=32
+   { OP_GOTO,              3, "goto"         , nullptr }, // op=33
+   { OP_GOTO_CONT,         1, "goto-cont"    , nullptr }, // op=34
+   { OP_MAP_INIT,          1, "map-init"     , nullptr }, // op=35
+   { OP_MAP_APPLY,         1, "map-apply"    , nullptr }, // op=36
+   { OP_MAP_RESULT,        1, "map-result"   , nullptr }, // op=37
+   { OP_FOR_INIT,          1, "for-init"     , nullptr }, // op=38
+   { OP_FOR_APPLY,         1, "for-apply"    , nullptr }, // op=39
+   { OP_FOR_RESULT,        1, "for-result"   , nullptr }, // op=40
+   { OP_EXTEND_ENV,        4, "extend-env"   , nullptr }, // op=41
+   { OP_ESET,              2, "eset"         , nullptr }, // op=42
+   { OP_DELAY,             2, "delay"        , nullptr }, // op=43
+   { OP_FORCE_VALUE,       1, "force-value"  , nullptr }, // op=44
 
    // exit(s)
-   { OP_RTE,               1, "rte"          , nullptr }, // op=44
-   { OP_RTC,               1, "rtc"          , nullptr }, // op=45
+   { OP_RTE,               1, "rte"          , nullptr }, // op=45
+   { OP_RTC,               1, "rtc"          , nullptr }, // op=46
    
-   { OP_GDEF,              2, "gdef"         , nullptr }, // op=46
 };
 
 struct RegisterEntry
@@ -712,19 +714,19 @@ static void decode( SEXPR code, int level=0 )
 	 case OP_ZERO_ARGC:    // op=14
 	 case OP_PUSH_ARG:     // op=15
 	 case OP_POP_ARGS:     // op=16
-	 case OP_APPLY:        // op=26
-	 case OP_APPLY_CONT:   // op=27
-	 case OP_TEST_TRUE:    // op=28
-	 case OP_TEST_FALSE:   // op=29
-	 case OP_BRANCH_CONT:  // op=31
-	 case OP_GOTO_CONT:    // op=33
-	 case OP_MAP_INIT:     // op=34
-	 case OP_MAP_APPLY:    // op=35
-	 case OP_MAP_RESULT:   // op=36
-	 case OP_FOR_INIT:     // op=37
-	 case OP_FOR_APPLY:    // op=38
-	 case OP_FOR_RESULT:   // op=39
-	 case OP_FORCE_VALUE:  // op=43
+	 case OP_APPLY:        // op=
+	 case OP_APPLY_CONT:   // op=
+	 case OP_TEST_TRUE:    // op=
+	 case OP_TEST_FALSE:   // op=
+	 case OP_BRANCH_CONT:  // op=
+	 case OP_GOTO_CONT:    // op=
+	 case OP_MAP_INIT:     // op=
+	 case OP_MAP_APPLY:    // op=
+	 case OP_MAP_RESULT:   // op=
+	 case OP_FOR_INIT:     // op=
+	 case OP_FOR_APPLY:    // op=
+	 case OP_FOR_RESULT:   // op=
+	 case OP_FORCE_VALUE:  // op=
 	 case OP_RTE:          //
 	 case OP_RTC:          //
             PIO::put( "\n" );
@@ -736,26 +738,26 @@ static void decode( SEXPR code, int level=0 )
             PIO::put( "\n" );
 	    break;
 
-	 case OP_ASSIGN_OBJ:   // op=18, [val,]value
+	 case OP_ASSIGN_OBJ:   // op, [val,]value
             PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
             PIO::put( "\n" );
 	    break;
 	    
-	 case OP_GREF:         // op=19, [val,]sym
+	 case OP_GREF:         // op, [val,]sym
             PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
             PIO::put( "\n" );
 	    break;
 
-	 case OP_GDEF:         // op=46, sym[,val]
-	 case OP_GSET:         // op=20, sym[,val]
+	 case OP_GSET:         // op, sym[,val]
+	 case OP_GDEF:         // op, sym[,val]
             PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
             PIO::put( "\n" );
 	    break;
 	    
-	 case OP_FREF:         // op=21, [val],depth,index[,env]
+	 case OP_FREF:         // op=, [val],depth,index[,env]
 	    PIO::put( " " );
 	    print_byte( bv, index+1 );
 	    PIO::put( "," );
@@ -763,7 +765,7 @@ static void decode( SEXPR code, int level=0 )
 	    PIO::put( "\n" );
 	    break;
 
-	 case OP_FSET:         // op=22, depth,index,[val],[env]
+	 case OP_FSET:         // op, depth,index,[val],[env]
 	    PIO::put( " " );
 	    print_byte( bv, index+1 );
 	    PIO::put( "," );
@@ -771,20 +773,20 @@ static void decode( SEXPR code, int level=0 )
 	    PIO::put( "\n" );
 	    break;
 	    
-	 case OP_GET_ACCESS:   // op=23, [val],sym,[val]
+	 case OP_GET_ACCESS:   // op, [val],sym,[val]
 	    PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
 	    PIO::put( "\n" );
 	    break;
 
-	 case OP_SET_ACCESS:   // op=24, [val,]sym[,val][,exp/env]
+	 case OP_SET_ACCESS:   // op, [val,]sym[,val][,exp/env]
 	    PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
 	    PIO::put( " " );
 	    PIO::put( "\n" );
 	    break;
 	 
-	 case OP_LAMBDA:       // op=25, [val,]bcode,params,num,rest[,env]
+	 case OP_LAMBDA:       // op, [val,]bcode,params,num,rest[,env]
 	    PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
 	    PIO::put( "," );
@@ -800,7 +802,7 @@ static void decode( SEXPR code, int level=0 )
 	    }
 	    break;
 	    	    
-	 case OP_DELAY:       // op=42, [val,]bcode
+	 case OP_DELAY:       // op, [val,]bcode
 	    PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );
 	    PIO::put( "\n" );
@@ -810,19 +812,19 @@ static void decode( SEXPR code, int level=0 )
 	    }
 	    break;
 	    	    
-	 case OP_BRANCH:       // op=30, pc=bcode-index (3b)
+	 case OP_BRANCH:       // op, pc=bcode-index (3b)
 	    PIO::put( " " );
 	    print_int16( bv, index+1 );
 	    PIO::put( "\n" );
 	    break;
 	    
-	 case OP_GOTO:         // op=32, pc=bcode-index (3b)
+	 case OP_GOTO:         // op, pc=bcode-index (3b)
 	    PIO::put( " " );
 	    print_int16( bv, index+1 );
 	    PIO::put( "\n" );
 	    break;
 	    	    
-	 case OP_EXTEND_ENV:   // op=40, reg,nvar,nvars
+	 case OP_EXTEND_ENV:   // op, reg,nvar,nvars
 	    PIO::put( " " );
 	    print_reg( bv, index+1 );
 	    PIO::put( "," );
@@ -832,7 +834,7 @@ static void decode( SEXPR code, int level=0 )
 	    PIO::put( "\n" );
 	    break;
 	    	    
-	 case OP_ESET:        // op=41, index
+	 case OP_ESET:        // op, index
 	    PIO::put( " " );
 	    print_byte( bv, index+1 );
 	    PIO::put( "\n" );

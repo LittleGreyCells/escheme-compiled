@@ -39,45 +39,45 @@ enum OpCodes
 
    OP_GREF,         // op=19, [val], sym(SVI)    (2b)
    OP_GSET,         // op=20, sym(SVI), [val]    (2b)
+   OP_GDEF,         // op=21, sym(SVI), [val]    (2b)
 
-   OP_FREF,         // op=21, [val], depth, index, [env] (3b)
-   OP_FSET,         // op=22, depth, index, [val], [env] (3b)
+   OP_FREF,         // op=22, [val], depth, index, [env] (3b)
+   OP_FSET,         // op=23, depth, index, [val], [env] (3b)
 
-   OP_GET_ACCESS,   // op=23, [val], sym(SVI), [val]            (2b)
-   OP_SET_ACCESS,   // op=24, [val], sym(SVI), [val], [exp/env] (2b)
+   OP_GET_ACCESS,   // op=24, [val], sym(SVI), [val]            (2b)
+   OP_SET_ACCESS,   // op=25, [val], sym(SVI), [val], [exp/env] (2b)
 
-   OP_LAMBDA,       // op=25, [val], bcode(CVI), params(CVI), num, rest, [env] (5b)
+   OP_LAMBDA,       // op=26, [val], bcode(CVI), params(CVI), num, rest, [env] (5b)
 
-   OP_APPLY,        // op=26 (1b)
-   OP_APPLY_CONT,   // op=27 (1b)
+   OP_APPLY,        // op=27 (1b)
+   OP_APPLY_CONT,   // op=28 (1b)
 
-   OP_TEST_TRUE,    // op=28, [val] (1b)
-   OP_TEST_FALSE,   // op=29, [val] (1b)
+   OP_TEST_TRUE,    // op=29, [val] (1b)
+   OP_TEST_FALSE,   // op=30, [val] (1b)
 
-   OP_BRANCH,       // op=30, pc=bcode-index (3b)
-   OP_BRANCH_CONT,  // op=31, next=cont      (1b)
+   OP_BRANCH,       // op=31, pc=bcode-index (3b)
+   OP_BRANCH_CONT,  // op=32, next=cont      (1b)
 
-   OP_GOTO,         // op=32, pc=bcode-index (3b)
-   OP_GOTO_CONT,    // op=33                 (1b)
+   OP_GOTO,         // op=33, pc=bcode-index (3b)
+   OP_GOTO_CONT,    // op=34                 (1b)
 
-   OP_MAP_INIT,     // op=34 (1b)
-   OP_MAP_APPLY,    // op=35 (1b)
-   OP_MAP_RESULT,   // op=36 (1b)
+   OP_MAP_INIT,     // op=35 (1b)
+   OP_MAP_APPLY,    // op=36 (1b)
+   OP_MAP_RESULT,   // op=37 (1b)
 
-   OP_FOR_INIT,     // op=37 (1b)
-   OP_FOR_APPLY,    // op=38 (1b)
-   OP_FOR_RESULT,   // op=39 (1b)
+   OP_FOR_INIT,     // op=38 (1b)
+   OP_FOR_APPLY,    // op=39 (1b)
+   OP_FOR_RESULT,   // op=49 (1b)
 
-   OP_EXTEND_ENV,   // op=40, reg, nvars, vars(SVI), [env] (4b)
-   OP_ESET,         // op=41, index, [val]                 (2b)
+   OP_EXTEND_ENV,   // op=41, reg, nvars, vars(SVI), [env] (4b)
+   OP_ESET,         // op=42, index, [val]                 (2b)
 
-   OP_DELAY,        // op=42, code(SVI) (2b)
-   OP_FORCE_VALUE,  // op=43
+   OP_DELAY,        // op=43, code(SVI) (2b)
+   OP_FORCE_VALUE,  // op=44
 
-   OP_RTE,          // op=44, return to eceval, cont <- top(evs)
-   OP_RTC,          // op=45, return to c/c++ caller
+   OP_RTE,          // op=45, return to eceval, cont <- top(evs)
+   OP_RTC,          // op=46, return to c/c++ caller
 
-   OP_GDEF,         // op=46, sym(SVI), [val]    (2b)
 };
 
 enum REGISTERS
