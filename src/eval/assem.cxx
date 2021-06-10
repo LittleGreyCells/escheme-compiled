@@ -28,6 +28,7 @@
 //   (assign <reg> (const <value>))
 //   (gref [<reg>] <sym>)
 //   (gset <sym>)
+//   (gdef <sym>)
 //   (fref <reg> <depth> <index>) 
 //   (fset <depth> <index>)
 //   (get-access [<reg>] (const <sym>) [(reg val)])
@@ -53,7 +54,6 @@
 //   (save-cont (label <label>))
 //   (rte)
 //   (rtc)
-//   (done)
 //
 
 namespace escheme
@@ -125,8 +125,10 @@ static std::vector<OpcodeEntry> optab =
    { OP_FORCE_VALUE,       1, "force-value"  , nullptr }, // op=43
 
    // exit(s)
-   { OP_RTE,               1, "rte" , nullptr },
-   { OP_RTC,               1, "rtc" , nullptr },
+   { OP_RTE,               1, "rte"          , nullptr }, // op=44
+   { OP_RTC,               1, "rtc"          , nullptr }, // op=45
+   
+   { OP_GDEF,              2, "gdef"         , nullptr }, // op=46
 };
 
 struct RegisterEntry
@@ -385,6 +387,7 @@ static SEXPR encode( SEXPR program )
 	       break;
 	    }
 
+	    case OP_GDEF:
 	    case OP_GSET:
 	    {
 	       // (gset <sym>) 
@@ -745,6 +748,7 @@ static void decode( SEXPR code, int level=0 )
             PIO::put( "\n" );
 	    break;
 
+	 case OP_GDEF:         // op=46, sym[,val]
 	 case OP_GSET:         // op=20, sym[,val]
             PIO::put( " " );
 	    print_sexpr( sv, bv, index+1 );

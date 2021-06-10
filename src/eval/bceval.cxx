@@ -172,14 +172,25 @@ void EVAL::bceval()
 	    auto sym = bcode.OBJECT( pc );
 	    val = value( sym );
 	    if ( val == symbol_unbound )
-	       ERROR::severe("symbol is unbound", sym);
+	       ERROR::severe("symbol is undefined", sym);
+	    pc += 1;
+	    break;
+	 }
+
+	 case OP_GDEF:
+	 {
+	    auto sym = bcode.OBJECT( pc );
+	    set( sym, val );
 	    pc += 1;
 	    break;
 	 }
 
 	 case OP_GSET:
 	 {
-	    set( bcode.OBJECT( pc ), val );
+	    auto sym = bcode.OBJECT( pc );
+	    if ( value(sym) == symbol_unbound )
+	       ERROR::severe("symbol is undefined", sym);
+	    set( sym, val );
 	    pc += 1;
 	    break;
 	 }

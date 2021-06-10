@@ -41,53 +41,45 @@
              (set! n (dec n))))
     ))
 
-(define (time-it f)
-  (let ((start-time (gettime))
-	end-time)
-    (f)
-    (set! end-time (gettime))
-    (let ((secs (- (car end-time) (car start-time)))
-	  (nsecs (- (cdr end-time) (cdr start-time)))
-	  etime)
-      (set! etime (+ (* secs 1000000000) nsecs))
-      etime
-    )))
-
-(define (timed-test) 
-  (time-it (lambda () (repeat run-the-test 10))))
-
 (define (test3 n)
   (display-header "test3" n)
   (load "help/syntax-help.scm")
-  (let ((f (lambda ()
-             (let ((help-fn
-                    (lambda (fn)
-                      (let ((matches (reverse (syntax-find fn))))
-                        (if (not matches)
-                            (error "couldn't find" fn)))))
-                   (fns '( car cdr cons list vector lambda define set! access abs add-history
-                               append apply bound? call/cc ceiling char? close-port closure?
-                               code? compile complex? cond dec default-object? display eq?
-                               eval even? exit floor force gcd gc getenv get if inc integer?
-                               last-pair let letrec list? member min negative? not null?
-                               max memq number? odd? <= = * + open-append-file or output-port?
-                               pair? port? print procedure? promise? put quotient random
-                               read-char read remainder reverse round sequence set-car!
-                               setenv shift-left shift-right string-append string-fill!
-                               string->symbol substring symbol? symbol->string system
-                               the-environment truncate unsetenv vector-copy! vector?
-                               vector-length vector->list while write-char write zero?
-                               )))
-               (let ()
-                 (while (> n 0)
-                        (map help-fn (reverse (append fns fns fns fns fns
-                                                      fns fns fns fns fns
-                                                      fns fns fns fns fns
-                                                      )))
-                        (set! n (dec n))))
-               ))))
-    (f)
+  (let ((help-fn
+         (lambda (fn)
+           (let ((matches (reverse (syntax-find fn))))
+             (if (not matches)
+                 (error "couldn't find" fn)))))
+        (fns '( car cdr cons list vector lambda define set! access abs add-history
+                    append apply bound? call/cc ceiling char? close-port closure?
+                    code? compile complex? cond dec default-object? display eq?
+                    eval even? exit floor force gcd gc getenv get if inc integer?
+                    last-pair let letrec list? member min negative? not null?
+                    max memq number? odd? <= = * + open-append-file or output-port?
+                    pair? port? print procedure? promise? put quotient random
+                    read-char read remainder reverse round sequence set-car!
+                    setenv shift-left shift-right string-append string-fill!
+                    string->symbol substring symbol? symbol->string system
+                    the-environment truncate unsetenv vector-copy! vector?
+                    vector-length vector->list while write-char write zero?
+                    )))
+    (let ()
+      (while (> n 0)
+             (map help-fn (reverse (append fns fns fns fns fns
+                                           fns fns fns fns fns
+                                           )))
+            (set! n (dec n))))
     ))
+
+(define (test4 n)
+  (display-header "test4" n)
+  (make-vector 10000)
+  (make-vector 10000)
+  (make-byte-vector 10000)
+  (make-byte-vector 10000)
+  (while (> n 0)
+         (make-vector 1000)
+         (make-byte-vector 1000)
+         (set! n (dec n))))
 
 (define (random-count factor base)
   (* (+ (random factor) 1) base))
@@ -100,14 +92,8 @@
            (newline)
            (test1 (random-count 15 150))
            (test2 (random-count 15 150))
-           (let ((f (lambda () (test3 3)))
-                 (factor 1000000000))
-             (let ((x (time-it f)))
-               (display "  -- ")
-               (display (/ x factor))
-               (display " seconds")
-               (newline)
-               ))
+           (test3 (random-count 5 2))
+           (test4 1000)
            (display "gc: ")
            (print (gc))
            (display "fs: ")
@@ -115,7 +101,7 @@
            (set! n (dec n))
            )))
 
-(driver 1000)
+;;(driver 1000)
 
 ;;(exit)
 

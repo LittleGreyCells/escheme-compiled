@@ -110,6 +110,10 @@
 (define (ec:make-get-access target sym env)
   (list (list 'get-access target (list 'const sym) (list 'reg env))))
 
+;; `((gdef ,sym))
+(define (ec:make-gdef sym)
+  (list (list 'gdef sym)))
+
 ;; `((gset ,sym))
 (define (ec:make-gset sym)
   (list (list 'gset sym)))
@@ -609,7 +613,7 @@
 	(ec:make-ins-sequence 
 	 '(val)
 	 (list target) 
-	 (ec:make-gset sym)
+	 (ec:make-gdef sym)
 	 ))
        ))))
 
