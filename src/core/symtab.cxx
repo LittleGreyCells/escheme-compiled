@@ -49,7 +49,7 @@ SEXPR SYMTAB::enter( const std::string& symbol_name )
    auto pair = table.find( symbol_name );
    if ( pair == table.end() )
    {
-      using PAIR = std::pair< std::string, SEXPR >;
+      using PAIR = std::pair<std::string, SEXPR>;
       // item not found
       auto sym = MEMORY::symbol( symbol_name );
       setvalue( sym, symbol_unbound );

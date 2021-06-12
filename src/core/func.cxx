@@ -1519,7 +1519,7 @@ SEXPR FUNC::string_dup()
    // syntax: (string <str>) -> <str-duplicated>
    //
    ArgstackIterator iter;
-   auto s = guard(iter.getarg(), stringp);
+   auto s = guard(iter.getlast(), stringp);
 
    return MEMORY::string( getstringdata(s) );
 }
