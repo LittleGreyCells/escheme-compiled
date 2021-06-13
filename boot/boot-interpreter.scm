@@ -1,4 +1,4 @@
-(define *version* "v2.0 (interpreter)")
+(define *version* "(interpreter)")
 (set-prompt "ece> ")
 
 (load (system-path "boot/standard-functions.scm"))

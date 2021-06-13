@@ -1,4 +1,4 @@
-(define *version* "v2.0 (compiler)")
+(define *version* "(compiler)")
 (set-prompt "bce> ")
 
 ;; redefine eval

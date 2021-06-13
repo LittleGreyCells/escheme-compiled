@@ -97,7 +97,7 @@ void EVAL::bceval()
 
 	 case OP_SAVE_ENV:  
 #ifdef BCE_CHECK
-	    if ( !(nullp(env) || envp(env)) )
+	    if ( !anyenvp(env) )
 	       ERROR::severe( "save-env: not an environment", env );
 #endif
 	    save( env ); 
@@ -106,7 +106,7 @@ void EVAL::bceval()
 	 case OP_RESTORE_ENV:  
 	    restore( env );
 #ifdef BCE_CHECK
-	    if ( !(nullp(env) || envp(env)) )
+	    if ( !anyenvp(env) )
 	       ERROR::severe( "restore-env: not an environment", env );
 #endif
 	    break;

@@ -54,9 +54,12 @@ namespace escheme
          (set! x 1)
          (load (system-path "escheme.scm"))
           )))
+     (display "escheme ")
+     (display *version*)
+     (newline)
      (newline)
      (call/cc (lambda (cc) (set! *toplevel* cc)))
-     (if (bound? '%unwind-all) 
+     (if (bound? '%unwind-all)
        (%unwind-all))
      (*rep-loop*))
 
