@@ -9,7 +9,7 @@ namespace escheme
 
 enum ConfigurationConstants
 {
-   NODE_BLOCK_SIZE    = 5000,
+   NODE_BLOCK_SIZE    = 10000,
    ARGSTACK_SIZE      = 500,
    REGSTACK_SIZE      = 1000,
    INTSTACK_SIZE      = 1000,
@@ -43,6 +43,7 @@ enum NodeKind
    n_foreach,
    n_force,
    n_code,
+   n_dict,
    NUMKINDS
 };
 
@@ -278,6 +279,7 @@ bool codep( const SEXPR n );
 bool vcp( const SEXPR n );
 bool primp( const SEXPR n );
 bool anyenvp( const SEXPR n );
+bool dictp( const SEXPR n );
 
 SEXPR guard( SEXPR s, PREDICATE predicate );
 
@@ -398,6 +400,9 @@ inline auto& promise_getexp( SEXPR n ) { return n->u.promise.exp; }
 inline auto& promise_getval( SEXPR n ) { return n->u.promise.val; }
 inline void promise_setexp( SEXPR n, SEXPR x) { promise_getexp(n) = x; }
 inline void promise_setval( SEXPR n, SEXPR x) { promise_getval(n) = x; }
+
+// dict
+//   use vector representation
 
 // inlinable predicates
 inline bool nullp( SEXPR n ) { return n == null; }
