@@ -13,6 +13,7 @@
 #include "core/regstack.hxx"
 #include "core/symtab.hxx"
 #include "core/format.hxx"
+#include "core/equality.hxx"
 
 //
 // instruction set
@@ -58,11 +59,6 @@
 
 namespace escheme
 {
-
-namespace FUNC
-{
-   bool eqv( SEXPR e1, SEXPR e2 );
-}
 
 static bool verbose = false;
 
@@ -237,7 +233,7 @@ static unsigned add_sexpr( std::vector<SEXPR>& sv, SEXPR object )
 {
    for ( int i = 0; i < sv.size(); i += 1 )
    {
-      if ( FUNC::eqv( sv[i], object ) )
+      if ( escheme::eqv( sv[i], object ) )
 	 return i;
    }
    const unsigned index = sv.size();
@@ -268,7 +264,7 @@ static void resolve_jumps( std::vector<BYTE>& bv,
       for ( auto& label : labels )
       {
 	 // a key can be a symbol or a number
-	 if ( FUNC::eqv(jump.key, label.key) )
+	 if ( escheme::eqv(jump.key, label.key) )
 	 {
 	    make16( bv, jump.value, label.value );
 	    break;

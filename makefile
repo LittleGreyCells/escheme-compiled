@@ -27,7 +27,9 @@ SRCS	= \
 	$(CORE)/intstack.cxx \
 	$(CORE)/reader.cxx \
 	$(CORE)/printer.cxx \
+	$(CORE)/equality.cxx \
 	$(CORE)/hash.cxx \
+	$(CORE)/dict.cxx \
 	$(CORE)/symtab.cxx \
 	$(CORE)/funtab.cxx \
 	$(CORE)/func.cxx \
