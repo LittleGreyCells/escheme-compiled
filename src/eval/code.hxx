@@ -78,6 +78,12 @@ enum OpCodes
    OP_RTE,          // op=45, return to eceval, cont <- top(evs)
    OP_RTC,          // op=46, return to c/c++ caller
 
+   OP_MREF,         // op=47, [val], depth, sym(SVI), [env] (3b)
+   OP_MSET,         // op=48, depth, sym(SVI), [val], [env] (3b)
+   OP_MDEF,         // op=49, sym(SVI), [val]    (2b)
+
+   OP_MODULE,       // op=50 (1b)
+
 };
 
 enum REGISTERS

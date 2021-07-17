@@ -10,6 +10,7 @@
 #include "core/funtab.hxx"
 #include "core/symtab.hxx"
 #include "core/format.hxx"
+#include "core/dict.hxx"
 
 #define BCE_CHECK
 #undef BCE_CHECK
@@ -192,6 +193,48 @@ void EVAL::bceval()
 	       ERROR::severe("symbol is undefined", sym);
 	    set( sym, val );
 	    pc += 1;
+	    break;
+	 }
+
+	 case OP_MODULE:
+	 {
+	    env = MEMORY::module();
+	    break;
+	 }
+
+	 case OP_MDEF:
+	 {
+	    auto sym = bcode.OBJECT( pc );
+	    auto mod = guard( env, modulep );
+	    auto dict = guard( module_getdict(mod), dictp );
+	    dict_set( dict, sym, val );
+	    pc += 1;
+	    break;
+	 }
+
+	 case OP_MREF:
+	 {
+	    int d = bcode[pc];
+	    auto e = env;
+	    while (d-- > 0)
+	       e = guard(getenvbase(e), envp);
+	    guard( e, modulep );
+	    auto dict = guard( module_getdict(e), dictp );
+	    val = dict_ref( dict, bcode.OBJECT(pc+1) );
+	    pc += 2;
+	    break;
+	 }
+
+	 case OP_MSET:
+	 {
+	    int d = bcode[pc];
+	    auto e = env;
+	    while (d-- > 0)
+	       e = guard(getenvbase(e), envp);
+	    guard( e, modulep );
+	    auto dict = guard( module_getdict(e), dictp );
+	    dict_set( dict, bcode.OBJECT(pc+1), val );
+	    pc += 2;
 	    break;
 	 }
 

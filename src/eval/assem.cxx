@@ -55,6 +55,10 @@
 //   (save-cont (label <label>))
 //   (rte)
 //   (rtc)
+//   (mref <reg> <depth> <sym>) 
+//   (mset <depth> <sym>)
+//   (mdef <sym>)
+//   (make-module [env])
 //
 
 namespace escheme
@@ -126,7 +130,12 @@ static std::vector<OpcodeEntry> optab =
    // exit(s)
    { OP_RTE,               1, "rte"          , nullptr }, // op=45
    { OP_RTC,               1, "rtc"          , nullptr }, // op=46
-   
+
+   // modules
+   { OP_MREF,              3, "mref"         , nullptr }, // op=47
+   { OP_MSET,              3, "mset"         , nullptr }, // op=48
+   { OP_MDEF,              2, "mdef"         , nullptr }, // op=49
+   { OP_MODULE,            1, "make-module"  , nullptr }, // op=50
 };
 
 struct RegisterEntry
@@ -385,9 +394,12 @@ static SEXPR encode( SEXPR program )
 	       break;
 	    }
 
+	    case OP_MDEF:
 	    case OP_GDEF:
 	    case OP_GSET:
 	    {
+	       // (mdef <sym>) 
+	       // (gdef <sym>) 
 	       // (gset <sym>) 
 	       append_byte( bv, op );
 	       const auto obj = car(cdr(x));
@@ -395,6 +407,26 @@ static SEXPR encode( SEXPR program )
 	       break;
 	    }
 
+	    case OP_MREF:
+	    {
+	       // (mref <reg> <depth> <sym>)
+	       append_byte( bv, op );
+	       const auto di = cdr(cdr(x));          // (<depth> <index>)
+	       append_byte( bv, fixnum(car(di)) );
+	       append_byte( bv, add_sexpr( sv, car(cdr(di))) );
+	       break;
+	    }
+	    
+	    case OP_MSET:
+	    {
+	       // (mset <depth> <sym>)
+	       append_byte( bv, op );
+	       const auto di = cdr(x);               // (<depth> <index>)
+	       append_byte( bv, fixnum(car(di)) );
+	       append_byte( bv, add_sexpr( sv, car(cdr(di))) );
+	       break;
+	    }
+	    
 	    case OP_FREF:
 	    {
 	       // (fref <reg> <depth> <index>) 
@@ -540,6 +572,7 @@ static SEXPR encode( SEXPR program )
 	    case OP_PUSH_ARG:
 	    case OP_APPLY:
 	    case OP_APPLY_CONT:
+	    case OP_MODULE:
 	    {
 	       append_byte( bv, op );
 	       break;
@@ -725,6 +758,7 @@ static void decode( SEXPR code, int level=0 )
 	 case OP_FORCE_VALUE:  // op=
 	 case OP_RTE:          //
 	 case OP_RTC:          //
+	 case OP_MODULE:       // op=50
             PIO::put( "\n" );
 	    break;
 	    
@@ -746,6 +780,7 @@ static void decode( SEXPR code, int level=0 )
             PIO::put( "\n" );
 	    break;
 
+	 case OP_MDEF:         // op, sym[,val]
 	 case OP_GSET:         // op, sym[,val]
 	 case OP_GDEF:         // op, sym[,val]
             PIO::put( " " );
@@ -766,6 +801,22 @@ static void decode( SEXPR code, int level=0 )
 	    print_byte( bv, index+1 );
 	    PIO::put( "," );
 	    print_byte( bv, index+2 );
+	    PIO::put( "\n" );
+	    break;
+	    
+	 case OP_MREF:         // op=, [val],depth,sym[,env]
+	    PIO::put( " " );
+	    print_byte( bv, index+1 );
+	    PIO::put( "," );
+	    print_sexpr( sv, bv, index+2 );
+	    PIO::put( "\n" );
+	    break;
+
+	 case OP_MSET:         // op, depth,sym,[val],[env]
+	    PIO::put( " " );
+	    print_byte( bv, index+1 );
+	    PIO::put( "," );
+	    print_sexpr( sv, bv, index+2 );
 	    PIO::put( "\n" );
 	    break;
 	    

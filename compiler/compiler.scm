@@ -46,6 +46,7 @@
 		 ((eq? x 'or)       (ec:compile-or exp env target linkage))
 		 ((eq? x 'begin)    (ec:compile-seq exp env target linkage))
 		 ((eq? x 'sequence) (ec:compile-seq exp env target linkage))
+		 ((eq? x 'module)   (ec:compile-mod exp env target linkage))
 		 ((eq? x 'set!)     (ec:compile-set! exp env target linkage))
 		 ((eq? x 'define)   (ec:compile-define (ec:normalize-define exp) env target linkage))
 		 (else              (ec:compile-application exp env target linkage)))
@@ -66,6 +67,10 @@
 (define (ec:make-assign target arg)
   (list (list 'assign target (list 'const arg))))
 
+;; `((assign ,target (reg ,arg)))
+(define (ec:make-assign-reg target arg)
+  (list (list 'assign target (list 'reg arg))))
+
 ;; `((gref ,target ,arg))
 (define (ec:make-gref target arg)
   (list (list 'gref target arg)))
@@ -73,6 +78,10 @@
 ;; `((fref ,target ,depth ,index))
 (define (ec:make-fref target depth index)
   (list (list 'fref target depth index)))
+
+;; `((mref ,target ,depth ,sym))
+(define (ec:make-mref target depth sym)
+  (list (list 'mref target depth sym)))
 
 ;; `((goto (label ,arg)))
 (define (ec:make-goto arg)
@@ -102,9 +111,13 @@
 (define (ec:make-test test)
   (list (list test '(reg val))))
 
-;;`((make-closure ,target ,code ,vars ,numv ,rest )
+;; `((make-closure ,target ,code ,vars ,numv ,rest )
 (define (ec:make-closure target code vars numv rest)
   (list (list 'make-closure target code vars numv rest )))
+
+;; `((make-module ,target )
+(define (ec:make-module target)
+  (list (list 'make-module target )))
 
 ;; `((get-access ,target (const ,sym) (reg ,env))) )
 (define (ec:make-get-access target sym env)
@@ -114,6 +127,10 @@
 (define (ec:make-gdef sym)
   (list (list 'gdef sym)))
 
+;; `((mdef ,sym))
+(define (ec:make-mdef sym)
+  (list (list 'mdef sym)))
+
 ;; `((gset ,sym))
 (define (ec:make-gset sym)
   (list (list 'gset sym)))
@@ -121,6 +138,10 @@
 ;; `((fset ,depth ,index))
 (define (ec:make-fset depth index)
   (list (list 'fset depth index)))
+
+;; `((mset ,depth ,sym))
+(define (ec:make-mset depth sym)
+  (list (list 'mset depth sym)))
 
 ;; `((set-access ,target (const ,sym) (reg val) (reg ,env)))
 (define (ec:make-set-access target sym env)
@@ -220,21 +241,27 @@
 (define (ec:lookup-symbol sym env depth)
   (if (ec:global-env? env)
       '()
-   (let ((bindings (environment-bindings env))
-	 (index 0)
-	 code)
-     (while (and (not code) bindings)
-	(if (eq? sym (caar bindings))
-	    (begin
-	      (set! code (cons depth index)))
-	    (begin
-	      (set! index (1+ index))
-	      (set! bindings (cdr bindings))))
-	)
-     (if (not code)
-	 (ec:lookup-symbol sym (environment-parent env) (1+ depth))
-	 code)
-     )))
+      (if (module? env)
+	  (let ((d (module-dict env)))
+	    (if (has-key? d sym)
+		(cons depth sym)
+		'()
+	    ))
+	  (let ((bindings (environment-bindings env))
+		(index 0)
+		code)
+	    (while (and (not code) bindings)
+		   (if (eq? sym (caar bindings))
+		       (begin
+			 (set! code (cons depth index)))
+		       (begin
+			 (set! index (1+ index))
+			 (set! bindings (cdr bindings))))
+		   )
+	    (if (not code)
+		(ec:lookup-symbol sym (environment-parent env) (1+ depth))
+		code)
+	    ))))
 
 ;;
 ;; SYMBOL
@@ -256,7 +283,9 @@
 	 (ec:make-ins-sequence
 	  '()
 	  (list target)
-	  (ec:make-fref target depth index)
+	  (if (symbol? index)
+	      (ec:make-mref target depth index)
+	      (ec:make-fref target depth index))
 	  ))))))
 
 ;;
@@ -561,7 +590,9 @@
 		     (ec:make-ins-sequence
 		      '(val)
 		      (list target)
-		      (ec:make-fset depth index)
+		      (if (symbol? index)
+			  (ec:make-mset depth index)
+			  (ec:make-fset depth index))
 		      ))
 		    )))
 	     ))
@@ -596,8 +627,6 @@
 ;; DEFINE
 ;;
 (define (ec:compile-define exp env target linkage)
-  (if env
-      (error "ec:compile-define -- internal defines not supported in this context" exp))
   (let ((defn-sym
 	  (lambda (exp)
 	    (if (symbol? exp)
@@ -612,8 +641,10 @@
 	value-code
 	(ec:make-ins-sequence 
 	 '(val)
-	 (list target) 
-	 (ec:make-gdef sym)
+	 (list target)
+	 (if (module? env)
+	     (begin (dict-set! (module-dict env) sym nil) (ec:make-mdef sym))
+	     (ec:make-gdef sym))
 	 ))
        ))))
 
@@ -700,6 +731,34 @@
       (ec:append-ins-sequences 
        (ec:compile (car exp) env target 'next)
        (ec:compile-list (cdr exp) env target linkage))))
+
+;;
+;; MODULE
+;;
+(define (ec:compile-mod exp env target linkage)
+  (ec:end-with-linkage
+   linkage
+   (ec:append-ins-sequences
+    (ec:make-ins-sequence
+     '()
+     '(env)
+     (ec:make-module 'env))
+    (let ((env (%make-module)))
+      (ec:compile-mod-body (cdr exp) env target 'next))
+    (ec:make-ins-sequence
+     '(env)
+     '(val)
+     (ec:make-assign-reg 'val 'env))
+    )))
+		      
+
+(define (ec:compile-mod-body exp env target linkage)
+  (if (null? exp)
+      '()
+      ;; collapse candidate
+      (ec:append-ins-sequences 
+       (ec:compile (car exp) env target 'next)
+       (ec:compile-mod-body (cdr exp) env target linkage))))
 
 ;;
 ;; AND/OR
