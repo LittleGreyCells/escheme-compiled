@@ -53,12 +53,12 @@
 //   (eset <index>)
 //   (delay <code>)
 //   (save-cont (label <label>))
-//   (rte)
-//   (rtc)
 //   (mref <reg> <depth> <sym>) 
 //   (mset <depth> <sym>)
 //   (mdef <sym>)
 //   (make-module [env])
+//   (rte)
+//   (rtc)
 //
 
 namespace escheme
@@ -105,8 +105,10 @@ static std::vector<OpcodeEntry> optab =
    
    { OP_FREF,              3, "fref"         , nullptr }, // op=22
    { OP_FSET,              3, "fset"         , nullptr }, // op=23
+   
    { OP_GET_ACCESS,        2, "get-access"   , nullptr }, // op=24
    { OP_SET_ACCESS,        2, "set-access"   , nullptr }, // op=25
+   
    { OP_LAMBDA,            5, "make-closure" , nullptr }, // op=26
    { OP_APPLY,             1, "apply"        , nullptr }, // op=27
    { OP_APPLY_CONT,        1, "apply-cont"   , nullptr }, // op=28
@@ -124,18 +126,19 @@ static std::vector<OpcodeEntry> optab =
    { OP_FOR_RESULT,        1, "for-result"   , nullptr }, // op=40
    { OP_EXTEND_ENV,        4, "extend-env"   , nullptr }, // op=41
    { OP_ESET,              2, "eset"         , nullptr }, // op=42
+   
    { OP_DELAY,             2, "delay"        , nullptr }, // op=43
    { OP_FORCE_VALUE,       1, "force-value"  , nullptr }, // op=44
 
+   { OP_MREF,              3, "mref"         , nullptr }, // op=45
+   { OP_MSET,              3, "mset"         , nullptr }, // op=46
+   { OP_MDEF,              2, "mdef"         , nullptr }, // op=47
+   { OP_MODULE,            1, "make-module"  , nullptr }, // op=48
+   
    // exit(s)
-   { OP_RTE,               1, "rte"          , nullptr }, // op=45
-   { OP_RTC,               1, "rtc"          , nullptr }, // op=46
+   { OP_RTE,               1, "rte"          , nullptr }, // op=49
+   { OP_RTC,               1, "rtc"          , nullptr }, // op=50
 
-   // modules
-   { OP_MREF,              3, "mref"         , nullptr }, // op=47
-   { OP_MSET,              3, "mset"         , nullptr }, // op=48
-   { OP_MDEF,              2, "mdef"         , nullptr }, // op=49
-   { OP_MODULE,            1, "make-module"  , nullptr }, // op=50
 };
 
 struct RegisterEntry
@@ -726,43 +729,43 @@ static void decode( SEXPR code, int level=0 )
 
       switch ( op )
       {
-	 case OP_SAVE_VAL:     // op=0
-	 case OP_SAVE_AUX:     // op=1
-	 case OP_SAVE_ENV:     // op=2
-	 case OP_SAVE_UNEV:    // op=3
-	 case OP_SAVE_EXP:     // op=4
-	 case OP_SAVE_ARGC:    // op=5
-	 case OP_SAVE_xxxx:    // op=6
-	 case OP_RESTORE_VAL:  // op=7
-	 case OP_RESTORE_AUX:  // op=8
-	 case OP_RESTORE_ENV:  // op=9
-	 case OP_RESTORE_UNEV: // op=10
-	 case OP_RESTORE_EXP:  // op=11
-	 case OP_RESTORE_ARGC: // op=12   
-	 case OP_RESTORE_xxxx: // op=13
-	 case OP_ZERO_ARGC:    // op=14
-	 case OP_PUSH_ARG:     // op=15
-	 case OP_POP_ARGS:     // op=16
-	 case OP_APPLY:        // op=
-	 case OP_APPLY_CONT:   // op=
-	 case OP_TEST_TRUE:    // op=
-	 case OP_TEST_FALSE:   // op=
-	 case OP_BRANCH_CONT:  // op=
-	 case OP_GOTO_CONT:    // op=
-	 case OP_MAP_INIT:     // op=
-	 case OP_MAP_APPLY:    // op=
-	 case OP_MAP_RESULT:   // op=
-	 case OP_FOR_INIT:     // op=
-	 case OP_FOR_APPLY:    // op=
-	 case OP_FOR_RESULT:   // op=
-	 case OP_FORCE_VALUE:  // op=
-	 case OP_RTE:          //
-	 case OP_RTC:          //
-	 case OP_MODULE:       // op=50
+	 case OP_SAVE_VAL:     // op
+	 case OP_SAVE_AUX:     // op
+	 case OP_SAVE_ENV:     // op
+	 case OP_SAVE_UNEV:    // op
+	 case OP_SAVE_EXP:     // op
+	 case OP_SAVE_ARGC:    // op
+	 case OP_SAVE_xxxx:    // op
+	 case OP_RESTORE_VAL:  // op
+	 case OP_RESTORE_AUX:  // op
+	 case OP_RESTORE_ENV:  // op
+	 case OP_RESTORE_UNEV: // op
+	 case OP_RESTORE_EXP:  // op
+	 case OP_RESTORE_ARGC: // op   
+	 case OP_RESTORE_xxxx: // op
+	 case OP_ZERO_ARGC:    // op
+	 case OP_PUSH_ARG:     // op
+	 case OP_POP_ARGS:     // op
+	 case OP_APPLY:        // op
+	 case OP_APPLY_CONT:   // op
+	 case OP_TEST_TRUE:    // op
+	 case OP_TEST_FALSE:   // op
+	 case OP_BRANCH_CONT:  // op
+	 case OP_GOTO_CONT:    // op
+	 case OP_MAP_INIT:     // op
+	 case OP_MAP_APPLY:    // op
+	 case OP_MAP_RESULT:   // op
+	 case OP_FOR_INIT:     // op
+	 case OP_FOR_APPLY:    // op
+	 case OP_FOR_RESULT:   // op
+	 case OP_FORCE_VALUE:  // op
+	 case OP_RTE:          // op
+	 case OP_RTC:          // op
+	 case OP_MODULE:       // op
             PIO::put( "\n" );
 	    break;
 	    
-	 case OP_ASSIGN_REG:   // op=17, [val,]reg
+	 case OP_ASSIGN_REG:   // op, [val,]reg
             PIO::put( " " );
 	    print_reg( bv, index+1 );
             PIO::put( "\n" );
@@ -788,7 +791,7 @@ static void decode( SEXPR code, int level=0 )
             PIO::put( "\n" );
 	    break;
 	    
-	 case OP_FREF:         // op=, [val],depth,index[,env]
+	 case OP_FREF:         // op, [val],depth,index[,env]
 	    PIO::put( " " );
 	    print_byte( bv, index+1 );
 	    PIO::put( "," );
@@ -804,7 +807,7 @@ static void decode( SEXPR code, int level=0 )
 	    PIO::put( "\n" );
 	    break;
 	    
-	 case OP_MREF:         // op=, [val],depth,sym[,env]
+	 case OP_MREF:         // op, [val],depth,sym[,env]
 	    PIO::put( " " );
 	    print_byte( bv, index+1 );
 	    PIO::put( "," );
