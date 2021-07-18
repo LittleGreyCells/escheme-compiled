@@ -13,7 +13,6 @@
 #include "core/dict.hxx"
 
 #define BCE_CHECK
-#undef BCE_CHECK
 
 namespace escheme
 {
@@ -205,8 +204,7 @@ void EVAL::bceval()
 	 case OP_MDEF:
 	 {
 	    auto sym = bcode.OBJECT( pc );
-	    auto mod = guard( env, modulep );
-	    auto dict = guard( module_getdict(mod), dictp );
+	    auto dict = guard( module_getdict( guard(env, modulep)), dictp );
 	    dict_set( dict, sym, val );
 	    pc += 1;
 	    break;
@@ -218,8 +216,7 @@ void EVAL::bceval()
 	    auto e = env;
 	    while (d-- > 0)
 	       e = getenvbase(e);
-	    guard( e, modulep );
-	    auto dict = guard( module_getdict(e), dictp );
+	    auto dict = guard( module_getdict( guard(e, modulep)), dictp );
 	    val = dict_ref( dict, bcode.OBJECT(pc+1) );
 	    pc += 2;
 	    break;
@@ -231,8 +228,7 @@ void EVAL::bceval()
 	    auto e = env;
 	    while (d-- > 0)
 	       e = getenvbase(e);
-	    guard( e, modulep );
-	    auto dict = guard( module_getdict(e), dictp );
+	    auto dict = guard( module_getdict( guard(e, modulep)), dictp );
 	    dict_set( dict, bcode.OBJECT(pc+1), val );
 	    pc += 2;
 	    break;
@@ -241,17 +237,9 @@ void EVAL::bceval()
 	 case OP_FREF:
 	 {
 	    int d = bcode[pc];
-#ifdef BCE_CHECK
-	    auto e = guard(env, envp);
-#else
 	    auto e = env;
-#endif
 	    while (d-- > 0)
-#ifdef BCE_CHECK
-	       e = guard(getenvbase(e), envp);
-#else
 	       e = getenvbase(e);
-#endif
 	    val = frameref( getenvframe(e), bcode[pc+1] );
 	    pc += 2;
 	    break;
@@ -262,17 +250,9 @@ void EVAL::bceval()
 	    // op, env-depth, frame-index, [val], [env]
 	    //     +0         +1 
 	    int d = bcode[pc];
-#ifdef BCE_CHECK
-	    auto e = guard(env, envp);
-#else
 	    auto e = env;
-#endif
 	    while (d-- > 0)
-#ifdef BCE_CHECK
-	       e = guard(getenvbase(e), envp);
-#else
 	       e = getenvbase(e);
-#endif
 	    frameset( getenvframe(e), bcode[pc+1], val );
 	    pc += 2;
 	    break;
@@ -698,20 +678,8 @@ void EVAL::bceval()
 	 {
 	    // op, index, [val]                 (2b)
 	    //     +0
-#ifdef BCE_CHECK
-	    auto e = guard( regstack.top(), envp );
-#else
 	    auto e = regstack.top();
-#endif
-	    const unsigned index = bcode[pc];
-#ifdef BCE_CHECK
-	    if ( index < getframenslots(getenvframe(e)) )
-	       frameset( getenvframe(e), index, val );
-	    else
-	       ERROR::severe( "eset: index out of bounds", e, MEMORY::fixnum(index) );
-#else
-	    frameset( getenvframe(e), index, val );
-#endif
+	    frameset( getenvframe(e), bcode[pc], val );
 	    pc += 1;
 	    break;
 	 }
