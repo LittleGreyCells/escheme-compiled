@@ -217,7 +217,7 @@ void EVAL::bceval()
 	    int d = bcode[pc];
 	    auto e = env;
 	    while (d-- > 0)
-	       e = guard(getenvbase(e), envp);
+	       e = getenvbase(e);
 	    guard( e, modulep );
 	    auto dict = guard( module_getdict(e), dictp );
 	    val = dict_ref( dict, bcode.OBJECT(pc+1) );
@@ -230,7 +230,7 @@ void EVAL::bceval()
 	    int d = bcode[pc];
 	    auto e = env;
 	    while (d-- > 0)
-	       e = guard(getenvbase(e), envp);
+	       e = getenvbase(e);
 	    guard( e, modulep );
 	    auto dict = guard( module_getdict(e), dictp );
 	    dict_set( dict, bcode.OBJECT(pc+1), val );
