@@ -46,7 +46,6 @@
 		 ((eq? x 'or)       (ec:compile-or exp env target linkage))
 		 ((eq? x 'begin)    (ec:compile-seq exp env target linkage))
 		 ((eq? x 'sequence) (ec:compile-seq exp env target linkage))
-		 ((eq? x 'module)   (ec:compile-mod exp env target linkage))
 		 ((eq? x 'set!)     (ec:compile-set! exp env target linkage))
 		 ((eq? x 'define)   (ec:compile-define (ec:normalize-define exp) env target linkage))
 		 (else              (ec:compile-application exp env target linkage)))
@@ -731,34 +730,6 @@
       (ec:append-ins-sequences 
        (ec:compile (car exp) env target 'next)
        (ec:compile-list (cdr exp) env target linkage))))
-
-;;
-;; MODULE
-;;
-(define (ec:compile-mod exp env target linkage)
-  (ec:end-with-linkage
-   linkage
-   (ec:append-ins-sequences
-    (ec:make-ins-sequence
-     '()
-     '(env)
-     (ec:make-module 'env))
-    (let ((env (%make-module)))
-      (ec:compile-mod-body (cdr exp) env target 'next))
-    (ec:make-ins-sequence
-     '(env)
-     '(val)
-     (ec:make-assign-reg 'val 'env))
-    )))
-		      
-
-(define (ec:compile-mod-body exp env target linkage)
-  (if (null? exp)
-      '()
-      ;; collapse candidate
-      (ec:append-ins-sequences 
-       (ec:compile (car exp) env target 'next)
-       (ec:compile-mod-body (cdr exp) env target linkage))))
 
 ;;
 ;; AND/OR
