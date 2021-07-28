@@ -5,9 +5,9 @@ The _escheme_ interpreter with compilation system
 
 ## Introduction
 
-_SICP_ also describes an abstract machine and a compiler to transform 
+Abelson and Sussman's _The Structure and Interpretation of Computer Programs (SICP)_ also describes an abstract machine and a compiler to transform 
 scheme expressions into executable code. This second implementation of _escheme_ runs
-with that idea, creating an abstract machine which closely parallels the
+with that idea, creating a byte code evaluator which closely parallels the
 interpreter core, but eliminating the interpreter's repeated analysis.
 
 ## Two Worlds
