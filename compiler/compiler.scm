@@ -114,10 +114,6 @@
 (define (ec:make-closure target code vars numv rest)
   (list (list 'make-closure target code vars numv rest )))
 
-;; `((make-module ,target )
-(define (ec:make-module target)
-  (list (list 'make-module target )))
-
 ;; `((get-access ,target (const ,sym) (reg ,env))) )
 (define (ec:make-get-access target sym env)
   (list (list 'get-access target (list 'const sym) (list 'reg env))))

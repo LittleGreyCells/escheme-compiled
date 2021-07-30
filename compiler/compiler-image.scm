@@ -16,7 +16,6 @@
 (<code> #(26 0 1 0 0 21 2 34) (<sexpr> 3 1 (<code> #(18 0 34) (<sexpr> 1 0 ((test-true)) ) ) 0 () 0 ec:make-test-true ) ) 
 (<code> #(26 0 1 1 0 21 2 34) (<sexpr> 3 1 (<code> #(14 5 14 22 0 0 15 18 0 15 19 1 27 12 15 19 1 28) (<sexpr> 2 0 (reg val) 0 list ) ) 0 (test) 0 ec:make-test ) ) 
 (<code> #(26 0 1 5 0 21 2 34) (<sexpr> 3 1 (<code> #(14 5 14 18 0 15 22 0 0 15 22 0 1 15 22 0 2 15 22 0 3 15 22 0 4 15 19 1 27 12 15 19 1 28) (<sexpr> 2 0 make-closure 0 list ) ) 0 (target code vars numv rest) 0 ec:make-closure ) ) 
-(<code> #(26 0 1 1 0 21 2 34) (<sexpr> 3 1 (<code> #(14 5 14 18 0 15 22 0 0 15 19 1 27 12 15 19 1 28) (<sexpr> 2 0 make-module 0 list ) ) 0 (target) 0 ec:make-module ) ) 
 (<code> #(26 0 1 3 0 21 2 34) (<sexpr> 3 1 (<code> #(14 5 14 18 0 15 22 0 0 15 5 14 18 1 15 22 0 1 15 19 2 27 12 15 5 14 18 3 15 22 0 2 15 19 2 27 12 15 19 2 27 12 15 19 2 28) (<sexpr> 4 0 get-access 0 const 0 list 0 reg ) ) 0 (target sym env) 0 ec:make-get-access ) ) 
 (<code> #(26 0 1 1 0 21 2 34) (<sexpr> 3 1 (<code> #(14 5 14 18 0 15 22 0 0 15 19 1 27 12 15 19 1 28) (<sexpr> 2 0 gdef 0 list ) ) 0 (sym) 0 ec:make-gdef ) ) 
 (<code> #(26 0 1 1 0 21 2 34) (<sexpr> 3 1 (<code> #(14 5 14 18 0 15 22 0 0 15 19 1 27 12 15 19 1 28) (<sexpr> 2 0 mdef 0 list ) ) 0 (sym) 0 ec:make-mdef ) ) 

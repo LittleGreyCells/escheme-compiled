@@ -56,7 +56,6 @@
 //   (mref <reg> <depth> <sym>) 
 //   (mset <depth> <sym>)
 //   (mdef <sym>)
-//   (make-module [env])
 //   (rte)
 //   (rtc)
 //
@@ -133,11 +132,10 @@ static std::vector<OpcodeEntry> optab =
    { OP_MREF,              3, "mref"         , nullptr }, // op=45
    { OP_MSET,              3, "mset"         , nullptr }, // op=46
    { OP_MDEF,              2, "mdef"         , nullptr }, // op=47
-   { OP_MODULE,            1, "make-module"  , nullptr }, // op=48
    
    // exit(s)
-   { OP_RTE,               1, "rte"          , nullptr }, // op=49
-   { OP_RTC,               1, "rtc"          , nullptr }, // op=50
+   { OP_RTE,               1, "rte"          , nullptr }, // op=48
+   { OP_RTC,               1, "rtc"          , nullptr }, // op=49
 
 };
 
@@ -575,7 +573,6 @@ static SEXPR encode( SEXPR program )
 	    case OP_PUSH_ARG:
 	    case OP_APPLY:
 	    case OP_APPLY_CONT:
-	    case OP_MODULE:
 	    {
 	       append_byte( bv, op );
 	       break;
@@ -761,7 +758,6 @@ static void decode( SEXPR code, int level=0 )
 	 case OP_FORCE_VALUE:  // op
 	 case OP_RTE:          // op
 	 case OP_RTC:          // op
-	 case OP_MODULE:       // op
             PIO::put( "\n" );
 	    break;
 	    

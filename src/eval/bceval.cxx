@@ -195,12 +195,6 @@ void EVAL::bceval()
 	    break;
 	 }
 
-	 case OP_MODULE:
-	 {
-	    env = MEMORY::module();
-	    break;
-	 }
-
 	 case OP_MDEF:
 	 {
 	    auto sym = bcode.OBJECT( pc );

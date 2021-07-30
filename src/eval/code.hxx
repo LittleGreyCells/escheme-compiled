@@ -78,10 +78,9 @@ enum OpCodes
    OP_MREF,         // op=45, [val], depth, sym(SVI), [env] (3b)
    OP_MSET,         // op=46, depth, sym(SVI), [val], [env] (3b)
    OP_MDEF,         // op=47, sym(SVI), [val]    (2b)
-   OP_MODULE,       // op=48 (1b)
 
-   OP_RTE,          // op=49, return to eceval, cont <- top(evs)
-   OP_RTC,          // op=50, return to c/c++ caller
+   OP_RTE,          // op=48, return to eceval, cont <- top(evs)
+   OP_RTC,          // op=49, return to c/c++ caller
 
 };
 
