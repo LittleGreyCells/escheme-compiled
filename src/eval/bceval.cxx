@@ -410,7 +410,7 @@ void EVAL::bceval()
 	 {
 	   start_apply:
 
-	    if ( _funcp(val) )
+	    if ( funcp(val) )
 	    {
 	       val = getprimfunc(val)();
 	       argstack.removeargc();
@@ -450,7 +450,7 @@ void EVAL::bceval()
 		  pc = 0;
 		  goto start_bceval;
 #else
-		  if ( _codep(unev) )
+		  if ( codep(unev) )
 		  {
 		     pc = 0;
 		     goto start_bceval;
@@ -495,7 +495,7 @@ void EVAL::bceval()
 		  pc = 0;
 		  goto start_bceval;
 #else
-		  if ( _codep(exp) )
+		  if ( codep(exp) )
 		  {
 		     unev = exp;
 		     pc = 0;
@@ -534,7 +534,7 @@ void EVAL::bceval()
 		  RESTORE_BCE_REGISTERS();
 		  goto start_bceval;
 #else
-		  if ( _codep( regstack.top() ) )
+		  if ( codep( regstack.top() ) )
 		  {
 		     RESTORE_BCE_REGISTERS();
 		     goto start_bceval;
