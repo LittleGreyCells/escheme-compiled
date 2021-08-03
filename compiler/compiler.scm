@@ -21,7 +21,7 @@
 
 (define ec:get-statements caddr)
 
-(define ec:the-global-env (the-environment))
+(define ec:the-global-env (the-global-environment))
 (define (ec:global-env? exp) (eq? exp ec:the-global-env))
 
 (define (compile exp . env)
