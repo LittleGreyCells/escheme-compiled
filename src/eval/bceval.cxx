@@ -198,7 +198,7 @@ void EVAL::bceval()
 	 case OP_MDEF:
 	 {
 	    auto sym = bcode.OBJECT( pc );
-	    auto dict = guard( module_getdict( guard(env, modulep)), dictp );
+	    auto dict = guard( assocenv_getdict( guard(env, assocenvp)), dictp );
 	    dict_set( dict, sym, val );
 	    pc += 1;
 	    break;
@@ -210,7 +210,7 @@ void EVAL::bceval()
 	    auto e = env;
 	    while (d-- > 0)
 	       e = getenvbase(e);
-	    auto dict = guard( module_getdict( guard(e, modulep)), dictp );
+	    auto dict = guard( assocenv_getdict( guard(e, assocenvp)), dictp );
 	    val = dict_ref( dict, bcode.OBJECT(pc+1) );
 	    pc += 2;
 	    break;
@@ -222,7 +222,7 @@ void EVAL::bceval()
 	    auto e = env;
 	    while (d-- > 0)
 	       e = getenvbase(e);
-	    auto dict = guard( module_getdict( guard(e, modulep)), dictp );
+	    auto dict = guard( assocenv_getdict( guard(e, assocenvp)), dictp );
 	    dict_set( dict, bcode.OBJECT(pc+1), val );
 	    pc += 2;
 	    break;
