@@ -65,8 +65,8 @@
 
   (test-list-functions)
   (test-array-functions)
-  ;;(test-modules)
-  ;;(test-local-defines)
+  (test-modules)
+  (test-local-defines)
   
   )
 
@@ -231,14 +231,15 @@
   nil
   )
 
+(module foo
+   (define (double n) (* n 2))
+   (define (square n) (* n n))
+   )
+(module bar
+    (define (twice f) (lambda (n) (f (f n))))
+    )
+
 (define (test-modules)
-  (module foo
-	  (define (double n) (* n 2))
-	  (define (square n) (* n n))
-	  )
-  (module bar
-	  (define (twice f) (lambda (n) (f (f n))))
-	  )
   (let ((foo (find-module 'foo))
 	(bar (find-module 'bar)))
     (let ((double (access double foo))
