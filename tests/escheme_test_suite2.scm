@@ -65,8 +65,8 @@
 
   (test-list-functions)
   (test-array-functions)
-  (test-modules)
-  (test-local-defines)
+  ;;(test-modules)
+  ;;(test-local-defines)
   
   )
 
