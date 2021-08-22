@@ -30,6 +30,7 @@ SRCS	= \
 	$(CORE)/equality.cxx \
 	$(CORE)/hash.cxx \
 	$(CORE)/dict.cxx \
+	$(CORE)/symdict.cxx \
 	$(CORE)/symtab.cxx \
 	$(CORE)/funtab.cxx \
 	$(CORE)/func.cxx \

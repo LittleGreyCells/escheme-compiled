@@ -10,7 +10,7 @@
 #include "core/funtab.hxx"
 #include "core/symtab.hxx"
 #include "core/format.hxx"
-#include "core/dict.hxx"
+#include "core/symdict.hxx"
 
 #define BCE_CHECK
 
@@ -198,8 +198,8 @@ void EVAL::bceval()
 	 case OP_MDEF:
 	 {
 	    auto sym = bcode.OBJECT( pc );
-	    auto dict = guard( assocenv_getdict( guard(env, assocenvp)), dictp );
-	    dict_set( dict, sym, val );
+	    auto aenv = guard(env, assocenvp);
+	    assocenv_getdict(aenv)->set( sym, val );
 	    pc += 1;
 	    break;
 	 }
@@ -210,8 +210,8 @@ void EVAL::bceval()
 	    auto e = env;
 	    while (d-- > 0)
 	       e = getenvbase(e);
-	    auto dict = guard( assocenv_getdict( guard(e, assocenvp)), dictp );
-	    val = dict_ref( dict, bcode.OBJECT(pc+1) );
+	    auto aenv = guard(e, assocenvp);
+	    val = assocenv_getdict(aenv)->get( bcode.OBJECT(pc+1) );
 	    pc += 2;
 	    break;
 	 }
@@ -222,8 +222,8 @@ void EVAL::bceval()
 	    auto e = env;
 	    while (d-- > 0)
 	       e = getenvbase(e);
-	    auto dict = guard( assocenv_getdict( guard(e, assocenvp)), dictp );
-	    dict_set( dict, bcode.OBJECT(pc+1), val );
+	    auto aenv = guard(e, assocenvp);
+	    assocenv_getdict(aenv)->set( bcode.OBJECT(pc+1), val );
 	    pc += 2;
 	    break;
 	 }
