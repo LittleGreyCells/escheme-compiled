@@ -30,7 +30,7 @@
 (load (system-path "macros/macros-compiler.scm"))
 (load (system-path "boot/standard-macros.scm"))
 (load (system-path "boot/catch-throw.scm"))
-(load (system-path "boot/modules.scm"))
+;; (load (system-path "boot/modules.scm"))
 (load (system-path "boot/decode-fun.scm"))
 
 ;; compile the rep loop
