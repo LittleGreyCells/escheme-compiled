@@ -8,22 +8,6 @@ In the root directory type 'make' to build the executable:
    $ make
 ```
 
-## Installing
-
-The compiler based system can be installed or used from the build directory.
-To install:
-```
-   $ sudo make install
-```
-
-The escheme entry is stored in /usr/local/bin which should be included in the path. It can
-be invoked without path qualification. See Running.
-
-The escheme system can be removed just as easily.
-```
-   $ sudo make uninstall
-```
-
 ## Running
 ```
 usage: escheme-compiled [(-i | --interpreter) | (-h | --help)] [files...]
@@ -68,8 +52,8 @@ interaction.
 
 Two suggested uses for the compiler:
 
-   1. Boot into the interpreter and compile individual objects; or,
-   2. Boot into the compiler capable system
+   o Boot into the interpreter and compile individual objects; or,
+   o Boot into the compiler capable system
 
 
 #### 1. Compiling Individual Objects
@@ -124,3 +108,20 @@ The code produced:
   ()
   bce> 
 ```
+
+## Installing
+
+The compiler based system can be installed or used from the build directory.
+To install:
+```
+   $ sudo make install
+```
+
+The escheme entry is stored in /usr/local/bin which should be included in the path. It can
+be invoked without path qualification. See Running.
+
+The escheme system can be removed just as easily.
+```
+   $ sudo make uninstall
+```
+
