@@ -18,7 +18,8 @@ usage: escheme-compiled [(-i | --interpreter) | (-h | --help)] [files...]
 To run the compiler based REP loop, simply invoke escheme and the linenoise prompt is displayed:
 ```
    $ ./escheme-compiled
-
+   escheme (compiler)
+   
    bce>
 ```
 
@@ -37,7 +38,8 @@ To run the interpreter, invoke escheme  with -i/--intepreter.
 A banner is printed and the linenoise prompt is displayed:
 ```
    $ ./escheme-compiled -i
-
+   escheme (interpreter)
+   
    ece>
 ```
 
@@ -59,7 +61,8 @@ This requires booting into the interpreter. To boot into the interpreter
 from the build directory invoke escheme with -i/--interpreter option:
 ```
    $ ./escheme-compiled -i
-
+   escheme (interpreter)
+   
    # load the compiler
    ece> (load "./compiler/compiler.scm")
 
@@ -76,7 +79,8 @@ from the build directory invoke escheme with -i/--interpreter option:
 To boot into the compiler capable system simply invoke escheme:
 ```
    $ ./escheme-compiled
-
+   escheme (compiler)
+   
    bce>
 ```
 
