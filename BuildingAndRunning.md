@@ -15,11 +15,9 @@ usage: escheme-compiled [(-i | --interpreter) | (-h | --help)] [files...]
 
 ### I. The Compiler
 
-To run the compiler based REP loop, simply invoke escheme. 
-A banner is printed and the linenoise prompt is displayed:
+To run the compiler based REP loop, simply invoke escheme and the linenoise prompt is displayed:
 ```
    $ ./escheme-compiled
-   escheme v2.0 (compiler)
 
    bce>
 ```
@@ -39,7 +37,6 @@ To run the interpreter, invoke escheme  with -i/--intepreter.
 A banner is printed and the linenoise prompt is displayed:
 ```
    $ ./escheme-compiled -i
-   escheme v2.0 (interpreter)
 
    ece>
 ```
@@ -62,7 +59,6 @@ This requires booting into the interpreter. To boot into the interpreter
 from the build directory invoke escheme with -i/--interpreter option:
 ```
    $ ./escheme-compiled -i
-   escheme v2.0 (interpreter)
 
    # load the compiler
    ece> (load "./compiler/compiler.scm")
@@ -80,7 +76,6 @@ from the build directory invoke escheme with -i/--interpreter option:
 To boot into the compiler capable system simply invoke escheme:
 ```
    $ ./escheme-compiled
-   escheme v2.0 (compiler)
 
    bce>
 ```
