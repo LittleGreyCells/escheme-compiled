@@ -52,8 +52,8 @@ interaction.
 
 Two suggested uses for the compiler:
 
-   o Boot into the interpreter and compile individual objects; or,
-   o Boot into the compiler capable system
+   * Boot into the interpreter and compile individual objects; or,
+   * Boot into the compiler capable system
 
 
 #### 1. Compiling Individual Objects
