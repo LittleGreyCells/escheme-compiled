@@ -1,8 +1,7 @@
-escheme
+escheme Conformance
+===================
 
-R3RS scheme interpreter and compilation system
-
-Introduction
+## Introduction
 
 escheme is an aspiring R3RS implementation of the algorithmic language scheme, 
 supporting approximately 90% of the standard. Further, many additional 
@@ -16,8 +15,10 @@ For a complete description of the R3RS see:
 
    https://practical-scheme.net/wiliki/schemexref.cgi?R3RS
 
-R3RS features supported(<s>) and not supported(<o>) by escheme:
+## R3RS Features
 
+R3RS features supported(<s>) and not supported(<o>) by escheme:
+```
   Expressions
     quote               <s>
     lambda              <s>
@@ -289,8 +290,6 @@ escheme additions
     %closure-vars
     %closure-numv
     %closure-rest
-    %make-closure
-    %parse-formals
     %make-code
     %get-bcodes
     %get-sexprs
@@ -306,4 +305,5 @@ escheme additions
     clear-history
     set-prompt
 
-[EOF]
+```
+
